@@ -26,4 +26,5 @@
     - Using executable
 	`vespo_bench`
     - Usage: vespo_bench <Vector dimension> <Paillier bitsize> <Verification iterations> [tasks (default=threads)]
-
+    - Example
+	`./vespo_bench 8192 2048 3`
