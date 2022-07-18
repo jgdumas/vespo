@@ -6,25 +6,31 @@
 **Authors**:  Jean-Guillaume Dumas
 
 
-*   Requirements:
+**Requirements**:
+- [RELIC](https://github.com/relic-toolkit/relic)
+- [GMP](https://gmplib.org/)  
 
-    - [RELIC](https://github.com/relic-toolkit/relic)
-    - [GMP](https://gmplib.org/)
 
+**Installation and running**:
 
-*   Installation and running:
+1.  Set the RELIC/GMP path within the Makefile
 
-    1.  Set the RELIC/GMP path within the Makefile
+2.  Toggle compilation flags variants within the Makefile
 
-    2.  Toggle compilation flags variants within the Makefile
-
-    3.  Compile with
+3.  Compile with
         `make`
 
-*   Benchmarking
 
-    - Using executable
+**Benchmarking**:
+
+- Using executable
 	`vespo_bench`
-    - Usage: vespo_bench <Vector dimension> <Paillier bitsize> <Verification iterations> [tasks (default=threads)]
-    - Example
-	`./vespo_bench 8192 2048 3`
+- Usage: vespo_bench <Vector dimension> <Paillier bitsize> <Verification iterations> [tasks (default=threads)]
+- Example
+	`./vespo_bench 8192 2048 3`  
+
+
+**References**:
+- VESPo: Verified Evaluation of Secret Polynomials.   
+  J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche,   
+  [ArXiv 2110.02022](https://arxiv.org/abs/2110.02022)
