@@ -39,6 +39,7 @@ extern "C" {
 
 // If using a version of relic without simultaneous bn_mxp
 #ifndef BN_XPWDT
+			// Size of Generalized Shamir trick
 # define BN_XPWDT 7
 # include "relic_bn_mxp_sim.c"
 #endif
@@ -64,11 +65,6 @@ extern "C" {
 #ifndef VESPO_RELIC_LIMIT_MAX_ALLOC
 			// With ALLOC=AUTO can't allocate too much
 #define VESPO_RELIC_LIMIT_MAX_ALLOC 8192
-#endif
-
-#ifndef BN_XPWDT
-			// Size of Generalized Shamir trick
-#  define BN_XPWDT 7
 #endif
 
 /****************************************************************
@@ -858,12 +854,12 @@ bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
                    const bn_t& r, const int64_t deg, const bn_t& mod) ;
 
 
-bool check_g2_hmxp(const Polynomial<g2_t>& T, const Polynomial<g2_t>& S,
+bool check_g1_hmxp(const Polynomial<g1_t>& T, const Polynomial<g1_t>& S,
                    const bn_t& r, const int64_t from, const int64_t length,
                    const bn_t& mod);
 
 
-void check_g2_msl(g2_t& r, const g2_t* P, const bn_t* K, int N);
+void check_g1_msl(g1_t& r, const g1_t* P, const bn_t* K, int N);
 
 void check_g2_mul_sim_lot(g2_t& RES, const g2_t* P, const bn_t* K, int N);
 
@@ -1003,23 +999,23 @@ bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
 }
 
 
-bool check_g2_hmxp(const Polynomial<g2_t>& T, const Polynomial<g2_t>& S,
+bool check_g1_hmxp(const Polynomial<g1_t>& T, const Polynomial<g1_t>& S,
                    const bn_t& r, const int64_t from, const int64_t length,
                    const bn_t& mod) {
 
     const int64_t deg(from+length-1);
     bool pass(true);
-    Polynomial<g2_t> U(deg,mod);
-    g2_copy(U[0], S[0]);
-    if (g2_cmp(U[0], T[0]) != RLC_EQ) {
-        printer(printer(std::cerr << "check_g2_hmxp: U[0] != T[0]: ", U[0]) << ' ', T[0]) << std::endl;
+    Polynomial<g1_t> U(deg,mod);
+    g1_copy(U[0], S[0]);
+    if (g1_cmp(U[0], T[0]) != RLC_EQ) {
+        printer(printer(std::cerr << "check_g1_hmxp: U[0] != T[0]: ", U[0]) << ' ', T[0]) << std::endl;
         pass = false;
     }
     for (int64_t i = 1; i <= deg; ++i) {
-        g2_mul(U[i], U[i-1], r);		// t^r
-        g2_add(U[i], U[i], S[i]);		// S_{i-1} t^r
-        if ( (i>= from) && (g2_cmp(U[i], T[i]) != RLC_EQ)) {
-            printer(printer(std::cerr << "check_g2_hmxp: U[" << i << "] != T[" << i << "]: ", U[i]) << ' ', T[i]) << std::endl;
+        g1_mul(U[i], U[i-1], r);		// t^r
+        g1_add(U[i], U[i], S[i]);		// S_{i-1} t^r
+        if ( (i>= from) && (g1_cmp(U[i], T[i]) != RLC_EQ)) {
+            printer(printer(std::cerr << "check_g1_hmxp: U[" << i << "] != T[" << i << "]: ", U[i]) << ' ', T[i]) << std::endl;
             pass = false;
         }
     }
@@ -1027,36 +1023,36 @@ bool check_g2_hmxp(const Polynomial<g2_t>& T, const Polynomial<g2_t>& S,
 }
 
 
-void check_g2_msl(g2_t& r, const g2_t* P, const bn_t* K, int N) {
-    g2_t q; g2_null(q); g2_new(q);
-    g2_set_infty(r);
+void check_g1_msl(g1_t& r, const g1_t* P, const bn_t* K, int N) {
+    g1_t q; g1_null(q); g1_new(q);
+    g1_set_infty(r);
     for (int j = 0; j < N; ++j) {
-        g2_mul(q, P[j], K[j]);
-        g2_add(r, r, q);
-        g2_mul_sim_lot(q,P,K,j+1);
-        if ( ! (g2_cmp(q,r) == RLC_EQ) ) {
-            std::cerr << "\033[1;31m****** FAIL: g2_mul_sim_lot " << (j+1) << " ******\033[0m" << std::endl;
+        g1_mul(q, P[j], K[j]);
+        g1_add(r, r, q);
+        g1_mul_sim_lot(q,P,K,j+1);
+        if ( ! (g1_cmp(q,r) == RLC_EQ) ) {
+            std::cerr << "\033[1;31m****** FAIL: g1_mul_sim_lot " << (j+1) << " ******\033[0m" << std::endl;
         }
     }
-    g2_free(q);
+    g1_free(q);
 }
 
-void check_g2_mul_sim_lot(g2_t& RES, const g2_t* P, const bn_t* K, int N) {
+void check_g1_mul_sim_lot(g1_t& RES, const g1_t* P, const bn_t* K, int N) {
 #ifdef VESPO_CHECKERS
     Chrono c_step; c_step.start();
 #endif
-    g2_mul_sim_lot(RES,P,K,N);
+    g1_mul_sim_lot(RES,P,K,N);
 
 #ifdef VESPO_CHECKERS
-    g2_t r; g2_null(r); g2_new(r);
-    check_g2_msl(r, P, K, N);
-    if ( ! (g2_cmp(RES,r) == RLC_EQ) ) {
-        std::cerr << "\033[1;31m****** FAIL: g2_mul_sim_lot " << N << " last ******\033[0m" << std::endl;
+    g1_t r; g1_null(r); g1_new(r);
+    check_g1_msl(r, P, K, N);
+    if ( ! (g1_cmp(RES,r) == RLC_EQ) ) {
+        std::cerr << "\033[1;31m****** FAIL: g1_mul_sim_lot " << N << " last ******\033[0m" << std::endl;
     }
-    g2_free(r);
+    g1_free(r);
 #endif
 #ifdef VESPO_CHECKERS
-    std::clog << "    Group 2 MulSim : " << c_step.stop() << " (" << N << " operations)" << std::endl;
+    std::clog << "    Group 1 MulSim : " << c_step.stop() << " (" << N << " operations)" << std::endl;
 #endif
 }
 
@@ -1405,7 +1401,7 @@ void setup(client_t& client, server_t& server,
 //========================================================
 // VeSPo: Update
 //========================================================
-bool update(client_t& client, server_t& server, 
+bool update(client_t& client, server_t& server,
             Polynomial<bn_t>& P, const bn_t& delta, const size_t index,
             double& time_u) {
 #ifdef VESPO_TIMINGS
@@ -1444,7 +1440,7 @@ bool update(client_t& client, server_t& server,
     g2_mul_gen(Hda2, da2);	// g2^{da1}
 
         // Client update (3): K
-    bn_t si; bn_new(si); 
+    bn_t si; bn_new(si);
     bn_mxp_dig(si, client.s, index, P.modulus()); // s^i mod p
 
     g2_t Deltaj; g2_new(Deltaj); g2_new(Deltaj);
@@ -1453,7 +1449,7 @@ bool update(client_t& client, server_t& server,
     g2_mul(Deltaj, Hda1, si);
     pc_map(DeltagT, client.g1, Deltaj);
     gt_mul(client.K1_bT, client.K1_bT, DeltagT);
-    
+
     g2_mul(Deltaj, Hda2, si);
     pc_map(DeltagT, client.g1, Deltaj);
     gt_mul(client.K2_bT, client.K2_bT, DeltagT);
@@ -1569,7 +1565,7 @@ void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
         // Server xi computation
         //   first step : Horner-like prefix computations of S_j^{x_k}
 #ifdef VESPO_CHECKERS
-    std::clog << "[G1HorIte] BEG: len " << length << ", tasks=" << nbtasks 
+    std::clog << "[G1HorIte] BEG: len " << length << ", tasks=" << nbtasks
 #	if defined(_OPENMP)
               << " on " << omp_get_thread_num()
 #	endif
