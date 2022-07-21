@@ -2069,7 +2069,7 @@ int main(int argc, char * argv[]) {
 
     printf("[DEVIATIO] | %lu %lu %lu | audit-client : %f%% | audit-server : %f%%\n", degree+1, group_bits, pailliersize, mediandeviation(time_c), mediandeviation(time_s));
 
-    printf("[TIMINGS ] | %lu %lu %lu | setup : %f | audit-client : %f | audit-server : %f | pure-horner : %f| update : %f  \n=== end ===\n\n", degree+1, group_bits, pailliersize, time_i, time_c[time_c.size()/2], time_s[time_s.size()/2], time_eval, time_u[time_u.size()/2]);
+    printf("[TIMINGS ] | %lu %lu %lu | setup : %f | audit-client : %f | audit-server : %f | pure-horner : %f | update : %f  \n=== end ===\n\n", degree+1, group_bits, pailliersize, time_i, time_c[time_c.size()/2], time_s[time_s.size()/2], time_eval, time_u[time_u.size()/2]);
 
 	return 0;
 }
