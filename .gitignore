@@ -27,6 +27,7 @@
 *.lib
 
 # Executables
+vespo_bench
 *.exe
 *.out
 *.app
