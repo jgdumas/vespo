@@ -2,7 +2,7 @@
 LIBS_DIR=/usr/local/soft/relic-0.6.0
 
 # Optimisation flags
-OPTFLAGS=-Ofast -march=native
+OPTFLAGS += -Ofast -march=native
 
 # Comment/Uncomment compilation variants
 OPTFLAGS += -DVESPO_SUB_TIMINGS 		# detailed timings

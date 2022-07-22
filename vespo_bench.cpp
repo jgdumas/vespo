@@ -39,6 +39,7 @@ extern "C" {
 
 // If using a version of relic without simultaneous bn_mxp
 #ifndef BN_XPWDT
+			// Size of Generalized Shamir trick
 # define BN_XPWDT 7
 # include "relic_bn_mxp_sim.c"
 #endif
@@ -64,11 +65,6 @@ extern "C" {
 #ifndef VESPO_RELIC_LIMIT_MAX_ALLOC
 			// With ALLOC=AUTO can't allocate too much
 #define VESPO_RELIC_LIMIT_MAX_ALLOC 8192
-#endif
-
-#ifndef BN_XPWDT
-			// Size of Generalized Shamir trick
-#  define BN_XPWDT 7
 #endif
 
 /****************************************************************
@@ -812,8 +808,8 @@ struct client_t {
 struct server_t {
     paillier_pubkey_t pub;
     std::vector<Polynomial<paillier_ciphertext_t>> W;
-    Polynomial<g1_t> H1_b, H2_b;
-    Polynomial<g2_t> S;
+    Polynomial<g2_t> H1_b, H2_b;
+    Polynomial<g1_t> S;
     int64_t bigblocks;
     server_t(const int64_t degree, const int64_t blocks, const bn_t& modulus) :
             H1_b(degree-1,modulus), H2_b(degree-1,modulus),
@@ -844,7 +840,7 @@ struct server_t {
 // VeSPo: checkers
 //=====================================================================
 
-void check_dp(g2_t& dp, const Polynomial<g2_t>& gS, const Polynomial<bn_t>& P);
+void check_dp(g1_t& dp, const Polynomial<g1_t>& gS, const Polynomial<bn_t>& P);
 
 
 bool check_orders(const client_t& client, const bn_t& pairing_r);
@@ -852,18 +848,18 @@ bool check_orders(const client_t& client, const bn_t& pairing_r);
 
 bool check_pubkey(const client_t& client, const server_t& server,
                   const Polynomial<bn_t>& P_b,
-                  const bn_t& eval, const g1_t& K_b);
+                  const bn_t& eval, const g2_t& K_b);
 
 bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
                    const bn_t& r, const int64_t deg, const bn_t& mod) ;
 
 
-bool check_g2_hmxp(const Polynomial<g2_t>& T, const Polynomial<g2_t>& S,
+bool check_g1_hmxp(const Polynomial<g1_t>& T, const Polynomial<g1_t>& S,
                    const bn_t& r, const int64_t from, const int64_t length,
                    const bn_t& mod);
 
 
-void check_g2_msl(g2_t& r, const g2_t* P, const bn_t* K, int N);
+void check_g1_msl(g1_t& r, const g1_t* P, const bn_t* K, int N);
 
 void check_g2_mul_sim_lot(g2_t& RES, const g2_t* P, const bn_t* K, int N);
 
@@ -876,15 +872,15 @@ bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
 // VeSPo: checkers implementations
 //=====================================================================
 
-void check_dp(g2_t& dp, const Polynomial<g2_t>& gS, const Polynomial<bn_t>& P) {
+void check_dp(g1_t& dp, const Polynomial<g1_t>& gS, const Polynomial<bn_t>& P) {
         // dp <-- \oplus [ p_i ] gS_i
-    g2_t tmp; g2_new(tmp);
-    g2_mul(dp, gS[0], P[0]);
+    g1_t tmp; g1_new(tmp);
+    g1_mul(dp, gS[0], P[0]);
     for(int64_t i=1; i <= P.degree(); ++i) {
-        g2_mul(tmp, gS[i], P[i]);
-        g2_add(dp, dp, tmp);
+        g1_mul(tmp, gS[i], P[i]);
+        g1_add(dp, dp, tmp);
     }
-    g2_free(tmp);
+    g1_free(tmp);
 }
 
 
@@ -936,23 +932,23 @@ bool check_orders(const client_t& client, const bn_t& pairing_r) {
 
 bool check_pubkey(const client_t& client, const server_t& server,
                   const Polynomial<bn_t>& P_b,
-                  const bn_t& eval, const g1_t& K_b) {
+                  const bn_t& eval, const g2_t& K_b) {
         // K_b sanity checks
-	g2_t test,chet;
+	g1_t test,chet;
 
-	g2_new(test);
+	g1_new(test);
 	check_dp(test, server.S, P_b);
 
-	g2_new(chet);
-	g2_mul_gen(chet, eval);		// g2^{P_b(s)}
+	g1_new(chet);
+	g1_mul_gen(chet, eval);		// g1^{P_b(s)}
 
-	if(g2_cmp(test, chet) == RLC_EQ) {
+	if(g1_cmp(test, chet) == RLC_EQ) {
 	    std::clog << "[ PowerP ] \033[1;32mOK\033[0m" << std::endl;
 	} else {
 #   ifdef DEBUG
         {
-            printf("g2 test : "); g2_print(test); printf("\n");
-            printf("g2 chet : "); g2_print(chet); printf("\n");
+            printf("g1 test : "); g1_print(test); printf("\n");
+            printf("g1 chet : "); g1_print(chet); printf("\n");
         }
 #   endif
 	    std::cerr << "[ PowerP ] \033[1;31m****** FAIL ******\033[0m" << std::endl;
@@ -961,8 +957,8 @@ bool check_pubkey(const client_t& client, const server_t& server,
 	gt_t left, right;
 	gt_new(left);
 	gt_new(right);
-	pc_map(left, K_b, client.g2);	// e(K_b;g2)
-	pc_map(right, client.g1, test);	// e(g1,dp)
+	pc_map(left, client.g1, K_b);	// e(g1;K_b)
+	pc_map(right, test, client.g2);	// e(dp;g2)
 
 #   ifdef DEBUG
     {
@@ -978,9 +974,9 @@ bool check_pubkey(const client_t& client, const server_t& server,
     } else {
         std::cerr << "[ KeyPub ] \033[1;31m****** FAIL ******\033[0m" << std::endl;
     }
-    g2_free(test);
+    g1_free(test);
     gt_free(left); gt_free(right);
-    g2_free(chet);
+    g1_free(chet);
 
     return pass;
 }
@@ -1003,23 +999,23 @@ bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
 }
 
 
-bool check_g2_hmxp(const Polynomial<g2_t>& T, const Polynomial<g2_t>& S,
+bool check_g1_hmxp(const Polynomial<g1_t>& T, const Polynomial<g1_t>& S,
                    const bn_t& r, const int64_t from, const int64_t length,
                    const bn_t& mod) {
 
     const int64_t deg(from+length-1);
     bool pass(true);
-    Polynomial<g2_t> U(deg,mod);
-    g2_copy(U[0], S[0]);
-    if (g2_cmp(U[0], T[0]) != RLC_EQ) {
-        printer(printer(std::cerr << "check_g2_hmxp: U[0] != T[0]: ", U[0]) << ' ', T[0]) << std::endl;
+    Polynomial<g1_t> U(deg,mod);
+    g1_copy(U[0], S[0]);
+    if (g1_cmp(U[0], T[0]) != RLC_EQ) {
+        printer(printer(std::cerr << "check_g1_hmxp: U[0] != T[0]: ", U[0]) << ' ', T[0]) << std::endl;
         pass = false;
     }
     for (int64_t i = 1; i <= deg; ++i) {
-        g2_mul(U[i], U[i-1], r);		// t^r
-        g2_add(U[i], U[i], S[i]);		// S_{i-1} t^r
-        if ( (i>= from) && (g2_cmp(U[i], T[i]) != RLC_EQ)) {
-            printer(printer(std::cerr << "check_g2_hmxp: U[" << i << "] != T[" << i << "]: ", U[i]) << ' ', T[i]) << std::endl;
+        g1_mul(U[i], U[i-1], r);		// t^r
+        g1_add(U[i], U[i], S[i]);		// S_{i-1} t^r
+        if ( (i>= from) && (g1_cmp(U[i], T[i]) != RLC_EQ)) {
+            printer(printer(std::cerr << "check_g1_hmxp: U[" << i << "] != T[" << i << "]: ", U[i]) << ' ', T[i]) << std::endl;
             pass = false;
         }
     }
@@ -1027,60 +1023,60 @@ bool check_g2_hmxp(const Polynomial<g2_t>& T, const Polynomial<g2_t>& S,
 }
 
 
-void check_g2_msl(g2_t& r, const g2_t* P, const bn_t* K, int N) {
-    g2_t q; g2_null(q); g2_new(q);
-    g2_set_infty(r);
+void check_g1_msl(g1_t& r, const g1_t* P, const bn_t* K, int N) {
+    g1_t q; g1_null(q); g1_new(q);
+    g1_set_infty(r);
     for (int j = 0; j < N; ++j) {
-        g2_mul(q, P[j], K[j]);
-        g2_add(r, r, q);
-        g2_mul_sim_lot(q,P,K,j+1);
-        if ( ! (g2_cmp(q,r) == RLC_EQ) ) {
-            std::cerr << "\033[1;31m****** FAIL: g2_mul_sim_lot " << (j+1) << " ******\033[0m" << std::endl;
+        g1_mul(q, P[j], K[j]);
+        g1_add(r, r, q);
+        g1_mul_sim_lot(q,P,K,j+1);
+        if ( ! (g1_cmp(q,r) == RLC_EQ) ) {
+            std::cerr << "\033[1;31m****** FAIL: g1_mul_sim_lot " << (j+1) << " ******\033[0m" << std::endl;
         }
     }
-    g2_free(q);
+    g1_free(q);
 }
 
-void check_g2_mul_sim_lot(g2_t& RES, const g2_t* P, const bn_t* K, int N) {
+void check_g1_mul_sim_lot(g1_t& RES, const g1_t* P, const bn_t* K, int N) {
 #ifdef VESPO_CHECKERS
     Chrono c_step; c_step.start();
 #endif
-    g2_mul_sim_lot(RES,P,K,N);
+    g1_mul_sim_lot(RES,P,K,N);
 
 #ifdef VESPO_CHECKERS
-    g2_t r; g2_null(r); g2_new(r);
-    check_g2_msl(r, P, K, N);
-    if ( ! (g2_cmp(RES,r) == RLC_EQ) ) {
-        std::cerr << "\033[1;31m****** FAIL: g2_mul_sim_lot " << N << " last ******\033[0m" << std::endl;
+    g1_t r; g1_null(r); g1_new(r);
+    check_g1_msl(r, P, K, N);
+    if ( ! (g1_cmp(RES,r) == RLC_EQ) ) {
+        std::cerr << "\033[1;31m****** FAIL: g1_mul_sim_lot " << N << " last ******\033[0m" << std::endl;
     }
-    g2_free(r);
+    g1_free(r);
 #endif
 #ifdef VESPO_CHECKERS
-    std::clog << "    Group 2 MulSim : " << c_step.stop() << " (" << N << " operations)" << std::endl;
+    std::clog << "    Group 1 MulSim : " << c_step.stop() << " (" << N << " operations)" << std::endl;
 #endif
 }
 
 bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
-                       const Polynomial<g1_t>& H_b, const bn_t& rmod) {
+                       const Polynomial<g2_t>& H_b, const bn_t& rmod) {
                // Server computation: check xi
     gt_t xi_b, tmpT;
-    g2_t tmpG2;
+    g1_t tmpG1;
     gt_new(tmpT);
     gt_new(xi_b);
-    g2_new(tmpG2);
+    g1_new(tmpG1);
     gt_set_unity(xi_b);
 
     bn_t zero; vespo_init_set_ui(zero,0);
-    g2_rand(tmpG2); g2_mul(tmpG2,tmpG2,zero);
+    g1_rand(tmpG1); g1_mul(tmpG1,tmpG1,zero);
 
     for (int64_t i = 0; i < deg; ++i) {
-        g2_mul(tmpG2,tmpG2, rmod);                     // t^r
-        g2_add(tmpG2,server.S[i], tmpG2);      // S_{i-1} t^r
+        g1_mul(tmpG1,tmpG1, rmod);                     // t^r
+        g1_add(tmpG1,server.S[i], tmpG1);      // S_{i-1} t^r
 #ifdef DEBUG
-        printf("H[%lu]: ", i); g1_print(H_b[i]); printf("\n");
-        printf("T[%lu]: ", i); g2_print(tmpG2); printf("\n");
+        printf("H[%lu]: ", i); g2_print(H_b[i]); printf("\n");
+        printf("T[%lu]: ", i); g1_print(tmpG1); printf("\n");
 #endif
-        pc_map(tmpT, H_b[i], tmpG2);   // e(H_i;t)
+        pc_map(tmpT, tmpG1, H_b[i]);   // e(H_i;t)
         gt_mul(xi_b, xi_b, tmpT);                      // xi e(H_i;t)
     }
 
@@ -1097,7 +1093,7 @@ bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
     }
 
     gt_free(xi_b);
-    g2_free(tmpG2);
+    g1_free(tmpG1);
     gt_free(tmpT);
 
     return pass;
@@ -1250,9 +1246,9 @@ void encrypt_poly(std::vector<Polynomial<paillier_ciphertext_t>>& W,
 // VeSPo: in the exponents
 //=====================================================================
 
-Polynomial<g1_t>& powered_poly_gen1(Polynomial<g1_t>& H,
+Polynomial<g2_t>& powered_poly_gen2(Polynomial<g2_t>& H,
                                     const Polynomial<bn_t>& P) {
-        // hi[i] <-- g1^{p_(i+1)}
+        // hi[i] <-- g2^{p_(i+1)}
     std::clog << "[Powered] BEG: d°" << P.degree() << std::endl;
 #ifdef VESPO_SUB_TIMINGS
     Chrono c_powpol; c_powpol.start();
@@ -1260,7 +1256,7 @@ Polynomial<g1_t>& powered_poly_gen1(Polynomial<g1_t>& H,
 
 #pragma omp parallel for
     for (int64_t i = 0; i < P.degree(); ++i) {
-        g1_mul_gen(H[i], P[i+1]);	// g1^{p_(i+1)}
+        g2_mul_gen(H[i], P[i+1]);	// g2^{p_(i+1)}
     }
 
 #ifdef VESPO_SUB_TIMINGS
@@ -1270,9 +1266,9 @@ Polynomial<g1_t>& powered_poly_gen1(Polynomial<g1_t>& H,
     return H;
 }
 
-Polynomial<g2_t>& power_progression_gen(Polynomial<g2_t>& S, const bn_t& s,
+Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, const bn_t& s,
                                         const int64_t d, const bn_t& mod) {
-        // S[i] <-- g2^{s^i}
+        // S[i] <-- g1^{s^i}
     std::clog << "[PowProg] BEG: d°" << d << std::endl;
 #ifdef VESPO_SUB_TIMINGS
     Chrono c_powprog; c_powprog.start();
@@ -1282,14 +1278,14 @@ Polynomial<g2_t>& power_progression_gen(Polynomial<g2_t>& S, const bn_t& s,
         // 1, s, s^2, ..., s^d
     geo_progression(pows_s, 0, s, d, s, mod, time_s);
 
-    g2_get_gen(S[0]);					// Generator in G2
+    g1_get_gen(S[0]);					// Generator in G1
 #pragma omp parallel for
     for (int64_t i = 1; i <= d; ++i) {
-        g2_mul_gen(S[i], pows_s[i]);	// g2^{s^i}
+        g1_mul_gen(S[i], pows_s[i]);	// g1^{s^i}
     }
 
 #ifdef VESPO_SUB_TIMINGS
-    std::clog << "  G2 Power progress.: " << c_powprog.stop() << " (" << d << " operations)" << std::endl;
+    std::clog << "  G1 Power progress.: " << c_powprog.stop() << " (" << d << " operations)" << std::endl;
 #endif
     std::clog << "[PowProg] END" << std::endl;
     return S;
@@ -1363,8 +1359,8 @@ void setup(client_t& client, server_t& server,
         // parallel hide the polynomial
     vhide_poly(P1_b, P2_b, client.valpha, client.vbeta, client.msigma, P);
         // parallel store H_b on server
-    powered_poly_gen1(server.H1_b, P1_b);
-    powered_poly_gen1(server.H2_b, P2_b);
+    powered_poly_gen2(server.H1_b, P1_b);
+    powered_poly_gen2(server.H2_b, P2_b);
 
 #ifdef VESPO_TIMINGS
     Chrono c_horner; c_horner.start();
@@ -1383,13 +1379,13 @@ void setup(client_t& client, server_t& server,
 #endif
 
 	// Compute and store public key K on client
-    g1_t K1_b, K2_b;
-    g1_new(K1_b);g1_new(K2_b);
+    g2_t K1_b, K2_b;
+    g2_new(K1_b);g2_new(K2_b);
 
-    g1_mul_gen(K1_b, veval.first);	// g1^{P1_b(s)}
-    pc_map(client.K1_bT, K1_b, client.g2);
-    g1_mul_gen(K2_b, veval.second);	// g1^{P2_b(s)}
-    pc_map(client.K2_bT, K2_b, client.g2);
+    g2_mul_gen(K1_b, veval.first);	// g2^{P1_b(s)}
+    pc_map(client.K1_bT, client.g1, K1_b);
+    g2_mul_gen(K2_b, veval.second);	// g2^{P2_b(s)}
+    pc_map(client.K2_bT, client.g1, K2_b);
 
 
 #ifdef VESPO_CHECKERS
@@ -1397,7 +1393,7 @@ void setup(client_t& client, server_t& server,
     check_pubkey(client, server, P2_b, veval.second, K2_b);
 #endif
 
-    g1_free(K1_b); g1_free(K2_b);
+    g2_free(K1_b); g2_free(K2_b);
     bn_free(group_mod);
     std::clog << "[ Setup  ] END" << std::endl;
 }
@@ -1405,7 +1401,7 @@ void setup(client_t& client, server_t& server,
 //========================================================
 // VeSPo: Update
 //========================================================
-bool update(client_t& client, server_t& server, 
+bool update(client_t& client, server_t& server,
             Polynomial<bn_t>& P, const bn_t& delta, const size_t index,
             double& time_u) {
 #ifdef VESPO_TIMINGS
@@ -1434,28 +1430,28 @@ bool update(client_t& client, server_t& server,
 
         // Client update (2): W
     bn_t da1, da2; bn_new(da1); bn_null(da1); bn_new(da2); bn_null(da2);
-    g1_t Hda1, Hda2; g1_new(Hda1); g1_new(Hda2);
+    g2_t Hda1, Hda2; g2_new(Hda1); g2_new(Hda2);
 
     bn_mul(da1, delta, client.valpha.first);
     bn_mod(da1, da1, P.modulus());
-    g1_mul_gen(Hda1, da1);	// g1^{da1}
+    g2_mul_gen(Hda1, da1);	// g2^{da1}
     bn_mul(da2, delta, client.valpha.second);
     bn_mod(da2, da2, P.modulus());
-    g1_mul_gen(Hda2, da2);	// g1^{da1}
+    g2_mul_gen(Hda2, da2);	// g2^{da1}
 
         // Client update (3): K
-    bn_t si; bn_new(si); 
+    bn_t si; bn_new(si);
     bn_mxp_dig(si, client.s, index, P.modulus()); // s^i mod p
 
-    g1_t Deltaj; g1_new(Deltaj); g1_new(Deltaj);
+    g2_t Deltaj; g2_new(Deltaj); g2_new(Deltaj);
     gt_t DeltagT; gt_new(DeltagT);
 
-    g1_mul(Deltaj, Hda1, si);
-    pc_map(DeltagT, Deltaj, client.g2);
+    g2_mul(Deltaj, Hda1, si);
+    pc_map(DeltagT, client.g1, Deltaj);
     gt_mul(client.K1_bT, client.K1_bT, DeltagT);
-    
-    g1_mul(Deltaj, Hda2, si);
-    pc_map(DeltagT, Deltaj, client.g2);
+
+    g2_mul(Deltaj, Hda2, si);
+    pc_map(DeltagT, client.g1, Deltaj);
     gt_mul(client.K2_bT, client.K2_bT, DeltagT);
 
         // Server updates
@@ -1473,12 +1469,12 @@ bool update(client_t& client, server_t& server,
     paillier_mul(server.W[jloc][kloc], server.W[jloc][kloc], edelta, server.pub);
         // Server update (2): H1[index] <- H[index] * Delta
     if (index>0) {
-        g1_add(server.H1_b[index-1], server.H1_b[index-1], Hda1);
-        g1_add(server.H2_b[index-1], server.H2_b[index-1], Hda2);
+        g2_add(server.H1_b[index-1], server.H1_b[index-1], Hda1);
+        g2_add(server.H2_b[index-1], server.H2_b[index-1], Hda2);
     }
 
     bn_free(da1); bn_free(da2); bn_free(si);
-    g1_free(Hda1); g1_free(Hda2); g1_free(Deltaj);
+    g2_free(Hda1); g2_free(Hda2); g2_free(Deltaj);
     gt_free(DeltagT)
 
     time_u = t_upd.stop();
@@ -1505,16 +1501,16 @@ bool update(client_t& client, server_t& server,
 // VeSPo: homomorphic operations
 //========================================================
 
-#define VESPO_G2HM_SMALL 32
+#define VESPO_G1HM_SMALL 32
 
-void g2_mul_sim_lot_par(g2_t& RES, const g2_t* P, const bn_t* K, int N,
+void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
                         const bn_t& mod, const int nbtasks) {
 #ifdef VESPO_SUB_TIMINGS
     Chrono c_step; c_step.start();
 #endif
 
-    if (nbtasks <= 1 || N < VESPO_G2HM_SMALL || N < nbtasks) {
-        g2_mul_sim_lot(RES,P,K,N);
+    if (nbtasks <= 1 || N < VESPO_G1HM_SMALL || N < nbtasks) {
+        g1_mul_sim_lot(RES,P,K,N);
     } else {
         int64_t taskfactor(nbtasks<<1), sizeloop;
         do {
@@ -1524,52 +1520,52 @@ void g2_mul_sim_lot_par(g2_t& RES, const g2_t* P, const bn_t* K, int N,
 
         const int64_t nbblocks( (int64_t)(std::ceil((double)N/(double(sizeloop)) )));
 #ifdef VESPO_CHECKERS
-        std::clog << "[G2MuSiLp] taskfactor : " << taskfactor << std::endl;
-        std::clog << "[G2MuSiLp] sizeloop   : " << sizeloop << std::endl;
-        std::clog << "[G2MuSiLp] nbblocks   : " << nbblocks << std::endl;
+        std::clog << "[G1MuSiLp] taskfactor : " << taskfactor << std::endl;
+        std::clog << "[G1MuSiLp] sizeloop   : " << sizeloop << std::endl;
+        std::clog << "[G1MuSiLp] nbblocks   : " << nbblocks << std::endl;
 #endif
-        Polynomial<g2_t> RR(nbblocks-1,mod);
+        Polynomial<g1_t> RR(nbblocks-1,mod);
 #pragma omp parallel for
         for(int64_t i=0; i<nbblocks; ++i) {
             const int64_t ipp(i*sizeloop);
-            g2_mul_sim_lot(RR[i],&(P[ipp]),&(K[ipp]),
+            g1_mul_sim_lot(RR[i],&(P[ipp]),&(K[ipp]),
                            std::min(static_cast<int64_t>(sizeloop), N-ipp));
         }
 
-        g2_set_infty(RES);
+        g1_set_infty(RES);
         for(int64_t i=0; i<nbblocks; ++i)
-            g2_add(RES, RES, RR[i]);
+            g1_add(RES, RES, RR[i]);
 
     }
 #ifdef VESPO_CHECKERS
-    g2_t r; g2_null(r); g2_new(r);
-    check_g2_msl(r, P, K, N);
-    if ( ! (g2_cmp(RES,r) == RLC_EQ) ) {
-        std::cerr << "\033[1;31m****** FAIL: g2_mul_sim_lot " << N << " last ******\033[0m" << std::endl;
+    g1_t r; g1_null(r); g1_new(r);
+    check_g1_msl(r, P, K, N);
+    if ( ! (g1_cmp(RES,r) == RLC_EQ) ) {
+        std::cerr << "\033[1;31m****** FAIL: g1_mul_sim_lot " << N << " last ******\033[0m" << std::endl;
     }
-    g2_free(r);
+    g1_free(r);
 #endif
 #ifdef VESPO_SUB_TIMINGS
-    std::clog << "    Group 2 MulSimP: " << c_step.stop() << " (" << N << " operations)" << std::endl;
+    std::clog << "    Group 1 MulSimP: " << c_step.stop() << " (" << N << " operations)" << std::endl;
 #endif
 }
 
-void g2_horner_mxp_seq(Polynomial<g2_t>& U, const Polynomial<g2_t>& S,
+void g1_horner_mxp_seq(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
                        const bn_t& r, const int64_t from, const int64_t length) {
         for (int64_t i = 1; i < length; ++i) {
-            g2_mul(U[from+i], U[from+i-1], r);			// t^r
-            g2_add(U[from+i], U[from+i], S[from+i]);	// S_{i-1} t^r
+            g1_mul(U[from+i], U[from+i-1], r);			// t^r
+            g1_add(U[from+i], U[from+i], S[from+i]);	// S_{i-1} t^r
         }
 }
 
-void g2_horner_mxp_iter(Polynomial<g2_t>& U, const Polynomial<g2_t>& S,
+void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
                         const bn_t& r, const int64_t from, const int64_t length,
                         const Polynomial<bn_t>& revpow, const int64_t step,
                         const bn_t& mod, const int64_t nbtasks) {
         // Server xi computation
         //   first step : Horner-like prefix computations of S_j^{x_k}
 #ifdef VESPO_CHECKERS
-    std::clog << "[G2HorIte] BEG: len " << length << ", tasks=" << nbtasks 
+    std::clog << "[G1HorIte] BEG: len " << length << ", tasks=" << nbtasks
 #	if defined(_OPENMP)
               << " on " << omp_get_thread_num()
 #	endif
@@ -1578,19 +1574,19 @@ void g2_horner_mxp_iter(Polynomial<g2_t>& U, const Polynomial<g2_t>& S,
 #ifdef VESPO_SUB_TIMINGS
     Chrono c_cho; c_cho.start();
 #endif
-    g2_copy(U[0], S[0]);
+    g1_copy(U[0], S[0]);
 
-    if (nbtasks<=1 || length <= VESPO_G2HM_SMALL || length <= nbtasks) {
-        g2_horner_mxp_seq(U,S,r,from,length);
+    if (nbtasks<=1 || length <= VESPO_G1HM_SMALL || length <= nbtasks) {
+        g1_horner_mxp_seq(U,S,r,from,length);
     } else {
 
         for(int64_t i=0; i<(nbtasks-1); ++i) {
-            g2_t tmp; g2_null(tmp); g2_new(tmp);
+            g1_t tmp; g1_null(tmp); g1_new(tmp);
 
-            g2_mul_sim_lot_par(tmp, &(S[from+i*step+1]), &(revpow[1]), step, mod, nbtasks);
+            g1_mul_sim_lot_par(tmp, &(S[from+i*step+1]), &(revpow[1]), step, mod, nbtasks);
 
-            g2_mul(U[from+(i+1)*step], U[from+i*step], revpow[0]);
-            g2_add(U[from+(i+1)*step], U[from+(i+1)*step], tmp);
+            g1_mul(U[from+(i+1)*step], U[from+i*step], revpow[0]);
+            g1_add(U[from+(i+1)*step], U[from+(i+1)*step], tmp);
 
         }
 
@@ -1598,19 +1594,19 @@ void g2_horner_mxp_iter(Polynomial<g2_t>& U, const Polynomial<g2_t>& S,
 #pragma omp parallel for
         for(int64_t i=0; i<nbtasks; ++i) {
             const int64_t ipp(i*step);
-            g2_horner_mxp_seq(U, S, r, from+ipp, std::min(step,length-ipp));
+            g1_horner_mxp_seq(U, S, r, from+ipp, std::min(step,length-ipp));
         }
 
     }
 #ifdef VESPO_SUB_TIMINGS
-    std::clog << "    Group 2 Horner : " << c_cho.stop() << " (" << length << " operations)" << std::endl;
+    std::clog << "    Group 1 Horner : " << c_cho.stop() << " (" << length << " operations)" << std::endl;
 #endif
 #ifdef VESPO_CHECKERS
-    if (check_g2_hmxp(U, S, r, from, length, mod))
-        std::clog << "OK check_g2_hmxp" << std::endl;
+    if (check_g1_hmxp(U, S, r, from, length, mod))
+        std::clog << "OK check_g1_hmxp" << std::endl;
     else
-        std::cerr << "********* ERROR ********** check_g2_hmxp" << std::endl;
-    std::clog << "[G2Horte] END" << std::endl;
+        std::cerr << "********* ERROR ********** check_g1_hmxp" << std::endl;
+    std::clog << "[G1Horte] END" << std::endl;
 #endif
 }
 
@@ -1742,13 +1738,13 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
     }
 
         // server computation : compute xi
-    Polynomial<g2_t> Ti(client.d-1, group_mod);
+    Polynomial<g1_t> Ti(client.d-1, group_mod);
 
-    g2_horner_mxp_iter(Ti, server.S, r, 0, client.d, revpow, step,
+    g1_horner_mxp_iter(Ti, server.S, r, 0, client.d, revpow, step,
                        group_mod, nb_tasks );
 
-    pairing_double(sxi1_b, client.d, nb_tasks, group_mod, server.H1_b, Ti);
-    pairing_double(sxi2_b, client.d, nb_tasks, group_mod, server.H2_b, Ti);
+    pairing_double(sxi1_b, client.d, nb_tasks, group_mod, Ti, server.H1_b);
+    pairing_double(sxi2_b, client.d, nb_tasks, group_mod, Ti, server.H2_b);
 
 #ifdef VESPO_TIMINGS
     time_p = c_step.stop();
@@ -2069,7 +2065,7 @@ int main(int argc, char * argv[]) {
 
     printf("[DEVIATIO] | %lu %lu %lu | audit-client : %f%% | audit-server : %f%%\n", degree+1, group_bits, pailliersize, mediandeviation(time_c), mediandeviation(time_s));
 
-    printf("[TIMINGS ] | %lu %lu %lu | setup : %f | audit-client : %f | audit-server : %f | pure-horner : %f| update : %f  \n=== end ===\n\n", degree+1, group_bits, pailliersize, time_i, time_c[time_c.size()/2], time_s[time_s.size()/2], time_eval, time_u[time_u.size()/2]);
+    printf("[TIMINGS ] | %lu %lu %lu | setup : %f | audit-client : %f | audit-server : %f | pure-horner : %f | update : %f  \n=== end ===\n\n", degree+1, group_bits, pailliersize, time_i, time_c[time_c.size()/2], time_s[time_s.size()/2], time_eval, time_u[time_u.size()/2]);
 
 	return 0;
 }
