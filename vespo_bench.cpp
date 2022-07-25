@@ -1205,6 +1205,9 @@ void paillier_hom_dp(paillier_ciphertext_t& eval,
                      const Polynomial<bn_t>& pows_r,
                      const int64_t degree) {
         // eval <-- prod Wi[i]^pows_r[i]
+#ifdef VESPO_SUB_TIMINGS
+    Chrono c_step; c_step.start();
+#endif
 #ifdef VESPO_CHECKERS
     std::clog << "[PailCdot] BEG: d°" << degree << std::endl;
 #endif
@@ -1213,6 +1216,10 @@ void paillier_hom_dp(paillier_ciphertext_t& eval,
                    reinterpret_cast<const bn_t*>(&(pows_r[0])),
                    kpub.nsq, degree+1);
 
+#ifdef VESPO_TIMINGS
+    double time_r = c_step.stop();
+    std::clog << "    Paillier mxpsim: " << time_r << " (" << (degree+1) << " homomorphic ops)" << std::endl;
+#endif
 #ifdef VESPO_CHECKERS
     std::clog << "[PailCdot] END" << std::endl;
 #endif
