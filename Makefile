@@ -1,6 +1,9 @@
 # Location of the RELIC library
 LIBS_DIR=/usr/local/soft/relic-0.6.0
 
+# Used Libraries
+LIBS_NAME=relic_s gmp rt
+
 # Optimisation flags
 OPTFLAGS += -Ofast -march=native
 
@@ -13,9 +16,6 @@ OPTFLAGS += -DVESPO_NOTSECURE=100		# only not benchmarking setup
 #OPTFLAGS += -DDEBUG				# Debug: general logs
 
 
-# Libraries
-LIBS_NAME=relic_s gmp rt
-
 # Benchmaring executable
 OBJ=vespo_bench
 
@@ -24,7 +24,7 @@ all: ${OBJ}
 
 # Generic compilation
 LOADINGLIBS=${LIBS_NAME:%=-l%}
-INCLUDES=-I${LIBS_DIR}/include
+INCLUDES=${LIBS_DIR:%=-I%/include}
 LIBFLAGS=${LIBS_DIR:%=-L%/lib}
 
 CFLAGS += ${OPTFLAGS} ${INCLUDES}

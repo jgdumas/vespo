@@ -1218,7 +1218,7 @@ void paillier_hom_dp(paillier_ciphertext_t& eval,
 
 #ifdef VESPO_TIMINGS
     double time_r = c_step.stop();
-    std::clog << "    Paillier mxpsim: " << time_r << " (" << (degree+1) << " homomorphic ops)" << std::endl;
+    std::clog << "    Paillier mxpsim: " << time_r << " (" << (degree+1) << " homomorphic ops)\n";
 #endif
 #ifdef VESPO_CHECKERS
     std::clog << "[PailCdot] END" << std::endl;
