@@ -1,9 +1,9 @@
 // ==========================================================================
 // VESPo: Verified Evaluation of Secret Polynomials
-// Reference:	https://arxiv.org/abs/2110.02022
-//				J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
+// Reference: [ https://arxiv.org/abs/2110.02022
+//              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <26 Jul 22 15:19:06 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <26 Jul 22 15:20:44 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -38,31 +38,31 @@ extern "C" {
 
 // If using a version of relic without simultaneous bn_mxp
 #ifndef BN_XPWDT
-			// Size of Generalized Shamir trick
+    // Size of Generalized Shamir trick
 # define BN_XPWDT 7
 # include "relic_bn_mxp_sim.c"
 #endif
 
 #ifdef DEBUG
 # ifndef VESPO_CHECKERS
-			// Automatic verification of subroutines
+    // Automatic verification of subroutines
 #  define VESPO_CHECKERS
 # endif
 # ifndef VESPO_SUB_TIMINGS
-			// Detailed timings
+    // Detailed timings
 #  define VESPO_SUB_TIMINGS
 # endif
 #endif
 
 #ifdef VESPO_SUB_TIMINGS
 # ifndef VESPO_TIMINGS
-			// Overall timings
+    // Overall timings
 #  define VESPO_TIMINGS
 # endif
 #endif
 
 #ifndef VESPO_RELIC_LIMIT_MAX_ALLOC
-			// With ALLOC=AUTO can't allocate too much
+    // With ALLOC=AUTO can't allocate too much
 #define VESPO_RELIC_LIMIT_MAX_ALLOC 8192
 #endif
 
@@ -82,11 +82,11 @@ template<typename Vect> double mediandeviation(const Vect& v) {
 
 #ifndef CLOCKTYPE
 #  ifdef CLOCK_PROCESS_CPUTIME_ID
-			/* cpu time in the current process */
+    /* cpu time in the current process */
 #    define CLOCKTYPE  CLOCK_PROCESS_CPUTIME_ID
 // #    define CLOCKTYPE  CLOCK_REALTIME
 #  else
-			/* this one should be appropriate to
+    /* this one should be appropriate to
                avoid errors on multiprocessors systems */
 #    define CLOCKTYPE  CLOCK_MONOTONIC
 #  endif
@@ -98,9 +98,9 @@ struct Chrono {
     struct timespec begin_time,end_time;
     void start() { clock_gettime(CLOCKTYPE, &begin_time); }
     double stop() {
-	clock_gettime(CLOCKTYPE, &end_time);
-	double ttime(difftime(end_time.tv_sec, begin_time.tv_sec));
-	return ttime += ((double) (end_time.tv_nsec - begin_time.tv_nsec) )/ VESPO_NANO_FACTOR;
+        clock_gettime(CLOCKTYPE, &end_time);
+        double ttime(difftime(end_time.tv_sec, begin_time.tv_sec));
+        return ttime += ((double) (end_time.tv_nsec - begin_time.tv_nsec) )/ VESPO_NANO_FACTOR;
     }
 };
 
@@ -479,9 +479,9 @@ void sqr_modcharp(bn_t& s0, bn_t& s1,
                   const bn_t& p0, const bn_t& p1,
                   const bn_t& t0, const bn_t& t1,
                   const bn_t& mod) {
-	// (t0 + t1 X)^2 mod p0 + p1 X + X^2
-	// --> t0^2 + 2t0t1 X + t1^2 ( -p0 -p1 X)
-	// --> (t0^2 -p0t1^2) + (2t0t1 -p1t1^2) X
+        // (t0 + t1 X)^2 mod p0 + p1 X + X^2
+        // --> t0^2 + 2t0t1 X + t1^2 ( -p0 -p1 X)
+        // --> (t0^2 -p0t1^2) + (2t0t1 -p1t1^2) X
 
     bn_sqr(s0, t0);						// T0^2
     bn_mod(s0, s0, mod);
@@ -509,9 +509,9 @@ void sqr_modcharp(bn_t& s0, bn_t& s1,
 void mulinx_modcharp(bn_t& s0, bn_t& s1,
                      const bn_t& p0, const bn_t& p1,
                      const bn_t& mod) {
-	// (s0 + s1 X) X mod p0 + p1 X + X^2
-	// --> s0 X + s1 (-p0 -p1 X)
-	// --> (-p0 s1) + (s0 - s1p1) X
+        // (s0 + s1 X) X mod p0 + p1 X + X^2
+        // --> s0 X + s1 (-p0 -p1 X)
+        // --> (-p0 s1) + (s0 - s1p1) X
 
 	bn_t tmp; bn_t smp; bn_new(tmp); bn_new(smp);
 
@@ -611,7 +611,7 @@ void matvectmod(bn_t& u0, bn_t& u1,
 #ifdef DEBUG
     std::clog << matrix(a,b,c,d) << '.' << vector(v0,v1) << " - ";
 #endif
-	// < a v0 + b v1 , c v0 + d v1 >
+        // < a v0 + b v1 , c v0 + d v1 >
     bn_t tmp; bn_new(tmp);
 
     bn_mul(u0, a, v0);
@@ -643,18 +643,18 @@ void PMGS(vector& u, const matrix& M,
 #ifdef DEBUG
     std::clog << "[PMGS] " << k << " BEG" << std::endl;
 #endif
-	// Characteristic polynomial
+        // Characteristic polynomial
     bn_t p0, p1; bn_new(p0); bn_new(p1);
     modcharpoly(p0, p1, M.a, M.b, M.c, M.d, mod);
 
-	// (A-I2)^{-1} --> 1/det < < d-1 | -b >, < -c | a-1 > >
+        // (A-I2)^{-1} --> 1/det < < d-1 | -b >, < -c | a-1 > >
     bn_t dm, nb, nc, am; bn_new(dm); bn_new(nb); bn_new(nc); bn_new(am);
     bn_sub_dig(dm, M.d, 1);
     bn_neg(nb, M.b);
     bn_neg(nc, M.c);
     bn_sub_dig(am, M.a, 1);
 
-	// Determinant( A-I2 ) --> am dm - b c
+        // Determinant( A-I2 ) --> am dm - b c
     bn_t idet; bn_new(idet);
     moddet(idet, am, M.b, M.c, dm, mod);
     bn_mod_inv(idet, idet, mod);
@@ -663,7 +663,7 @@ void PMGS(vector& u, const matrix& M,
     std::clog << "(" << M << "-IdentityMatrix(2))." << matrix(dm, nb, nc, am) << " mod " << mod << ';' << std::endl;
 #endif
 
-	// (A-I2)^{-1} v
+        // (A-I2)^{-1} v
     bn_t w0, w1; bn_new(w0); bn_new(w1);
     matvectmod(w0, w1, dm, nb, nc, am, v.first, v.second, mod);
     bn_mul(w0, w0, idet);
@@ -676,11 +676,11 @@ void PMGS(vector& u, const matrix& M,
 #endif
 
 
-	// Polynomial Geometric sum
+        // Polynomial Geometric sum
     bn_t f0, f1; bn_new(f0); bn_new(f1);
     TMMP(f0, f1, p0, p1, k+1, mod);
 
-	// F(A) - I2 --> << a*f1+f0-1 | f1*b >, < f1*c | d*f1+f0-1 >>
+        // F(A) - I2 --> << a*f1+f0-1 | f1*b >, < f1*c | d*f1+f0-1 >>
     bn_sub_dig(dm, f0, 1);	// f0-1
     bn_mul(am, M.a, f1);	// a*f1
     bn_mod(am, am, mod);
@@ -793,9 +793,9 @@ struct client_t {
         size += elements_size*(1+2+2+2+4 + 1);
         return size;
     }
-	//=====================================================================
-	// VeSPo: key generation
-	//=====================================================================
+        //=====================================================================
+        // VeSPo: key generation
+        //=====================================================================
     void keygen(uint64_t pailliersize) {
         pc_get_ord( prv->a );
 
@@ -904,11 +904,11 @@ bool check_orders(const client_t& client, const bn_t& pairing_r) {
     pc_map(generatorT, client.g1, client.g2); // g_t
 
     const bool pass( (! g1_is_infty(client.g1)) &&
-		     (! g2_is_infty(client.g2)) &&
-		     (! gt_is_unity(client.e_T)) &&
-		     g1_is_infty(o1) && g2_is_infty(o2) && gt_is_unity(ot) &&
-		     (gt_cmp(client.e_T, generatorT) == RLC_EQ)
-		    );
+                     (! g2_is_infty(client.g2)) &&
+                     (! gt_is_unity(client.e_T)) &&
+                     g1_is_infty(o1) && g2_is_infty(o2) && gt_is_unity(ot) &&
+                     (gt_cmp(client.e_T, generatorT) == RLC_EQ)
+                     );
 
     if(pass) {
         std::clog << "[GOrders ] \033[1;32mOK\033[0m" << std::endl;
@@ -916,10 +916,10 @@ bool check_orders(const client_t& client, const bn_t& pairing_r) {
     } else {
         std::clog << "[GOrders ] \033[1;31m****** FAIL ******\033[0m" << std::endl;
 #ifdef DEBUG
-	printf("o1 (should be zero): "); g1_print(o1); printf("\n");
-	printf("o2 (should be zero): "); g2_print(o2); printf("\n");
-	printf("gt : "); gt_print(generatorT); printf("\n");
-	printf("et : "); gt_print(client.e_T); printf("\n");
+        printf("o1 (should be zero): "); g1_print(o1); printf("\n");
+        printf("o2 (should be zero): "); g2_print(o2); printf("\n");
+        printf("gt : "); gt_print(generatorT); printf("\n");
+        printf("et : "); gt_print(client.e_T); printf("\n");
 #endif
     }
 
@@ -961,8 +961,8 @@ bool check_pubkey(const client_t& client, const server_t& server,
 
 #   ifdef DEBUG
     {
-	printf("left  : "); gt_print(left); printf("\n");
-	printf("right : "); gt_print(right);printf("\n");
+        printf("left  : "); gt_print(left); printf("\n");
+        printf("right : "); gt_print(right);printf("\n");
     }
 
 #   endif
@@ -1057,7 +1057,7 @@ void check_g1_mul_sim_lot(g1_t& RES, const g1_t* P, const bn_t* K, int N) {
 
 bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
                        const Polynomial<g2_t>& H_b, const bn_t& rmod) {
-               // Server computation: check xi
+        // Server computation: check xi
     gt_t xi_b, tmpT;
     g1_t tmpG1;
     gt_new(tmpT);
@@ -1115,7 +1115,7 @@ void vhide_poly(Polynomial<bn_t> & P1, Polynomial<bn_t>& P2,
     std::clog << P << std::endl;
 #endif
     vector sigmapow, tmp; sigmapow.copy(vbeta);
-	// p_0 alpha + beta
+        // p_0 alpha + beta
     bn_mul(P1[0], valpha.first, P[0]);
     bn_mul(P2[0], valpha.second, P[0]);
     bn_add(P1[0], P1[0], vbeta.first);
@@ -1314,11 +1314,11 @@ void setup(client_t& client, server_t& server,
     vector veval;
     bn_t group_mod; bn_new(group_mod); pc_get_ord(group_mod);
 
-       // Random valpha, vbeta
+        // Random valpha, vbeta
     client.valpha.randomize(group_mod);
     client.vbeta.randomize(group_mod);
 
-       // Find s and msigma, s.t. (s Sigma - I_2) is invertible
+        // Find s and msigma, s.t. (s Sigma - I_2) is invertible
     bn_t det; bn_new(det);
     do {
         bn_rand_mod(client.s, group_mod);
@@ -1333,7 +1333,7 @@ void setup(client_t& client, server_t& server,
 
     std::clog << "[Setup group secret " << client.s << " (mod " << group_mod << ")]" << std::endl;
 
-       // Generate Paillier's keys
+        // Generate Paillier's keys
     client.keygen(pailliersize);
 
 #ifdef VESPO_CHECKERS
@@ -1352,7 +1352,7 @@ void setup(client_t& client, server_t& server,
     std::clog << "[Setup Paillier mod "<< client.pub.rlc->crt->n << ']' << std::endl;
 
     server.pub = client.pub;
-	// Pairing Generators
+        // Pairing Generators
     g1_get_gen(client.g1);		//     g1_rand(client.g1);	// Generator in G1
     g2_get_gen(client.g2);		//     g2_rand(client.g2);	// Generator in G2
     gt_get_gen(client.e_T);
@@ -1387,7 +1387,7 @@ void setup(client_t& client, server_t& server,
     check_orders(client, group_mod);
 #endif
 
-	// Compute and store public key K on client
+        // Compute and store public key K on client
     g2_t K1_b, K2_b;
     g2_new(K1_b);g2_new(K2_b);
 
@@ -1486,7 +1486,7 @@ bool update(client_t& client, server_t& server,
     g2_free(Hda1); g2_free(Hda2); g2_free(Deltaj);
     gt_free(DeltagT)
 
-    time_u = t_upd.stop();
+        time_u = t_upd.stop();
 
 #ifdef VESPO_CHECKERS
     bn_t Pn; bn_new(Pn);
@@ -1562,10 +1562,10 @@ void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
 
 void g1_horner_mxp_seq(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
                        const bn_t& r, const int64_t from, const int64_t length) {
-        for (int64_t i = 1; i < length; ++i) {
-            g1_mul(U[from+i], U[from+i-1], r);			// t^r
-            g1_add(U[from+i], U[from+i], S[from+i]);	// S_{i-1} t^r
-        }
+    for (int64_t i = 1; i < length; ++i) {
+        g1_mul(U[from+i], U[from+i-1], r);			// t^r
+        g1_add(U[from+i], U[from+i], S[from+i]);	// S_{i-1} t^r
+    }
 }
 
 void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
@@ -1728,68 +1728,68 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
 #endif
 
     {	// server computation : compute xi & zeta
-    Chrono c_server; c_server.start();
+        Chrono c_server; c_server.start();
 
-        // server computation : first powers of eval. point for zeta
+            // server computation : first powers of eval. point for zeta
 #ifdef VESPO_TIMINGS
-    Chrono c_step; c_step.start();
+        Chrono c_step; c_step.start();
 #endif
 
-    Polynomial<bn_t> pows_r(apows_deg,group_mod);
-    geo_progression(pows_r, 0, r, powsr_deg, r, group_mod, time_r);
+        Polynomial<bn_t> pows_r(apows_deg,group_mod);
+        geo_progression(pows_r, 0, r, powsr_deg, r, group_mod, time_r);
 
-    bn_copy(rpowsm, pows_r[server.W[0].degree()]);	// last power of r;
-    bn_mul(rpows, rpowsm, r);						// next power of r;
-    bn_mod(rpows, rpows, group_mod);
+        bn_copy(rpowsm, pows_r[server.W[0].degree()]);	// last power of r;
+        bn_mul(rpows, rpowsm, r);						// next power of r;
+        bn_mod(rpows, rpows, group_mod);
 
-    Polynomial<bn_t> revpow(step,group_mod);
-    for(int64_t i=0; i<(step+1); ++i) {
-        bn_null(revpow[i]); bn_new(revpow[i]);
-        bn_copy(revpow[i],pows_r[step-i]);
-    }
+        Polynomial<bn_t> revpow(step,group_mod);
+        for(int64_t i=0; i<(step+1); ++i) {
+            bn_null(revpow[i]); bn_new(revpow[i]);
+            bn_copy(revpow[i],pows_r[step-i]);
+        }
 
 // server computation : compute xi
-    if (client.d) {
-        Polynomial<g1_t> Ti(client.d-1, group_mod);
+        if (client.d) {
+            Polynomial<g1_t> Ti(client.d-1, group_mod);
 
-        g1_horner_mxp_iter(Ti, server.S, r, 0, client.d, revpow, step,
-                           group_mod, nb_tasks );
+            g1_horner_mxp_iter(Ti, server.S, r, 0, client.d, revpow, step,
+                               group_mod, nb_tasks );
 
-        pairing_double(sxi1_b, client.d, nb_tasks, group_mod, Ti, server.H1_b);
-        pairing_double(sxi2_b, client.d, nb_tasks, group_mod, Ti, server.H2_b);
+            pairing_double(sxi1_b, client.d, nb_tasks, group_mod, Ti, server.H1_b);
+            pairing_double(sxi2_b, client.d, nb_tasks, group_mod, Ti, server.H2_b);
 
 #ifdef VESPO_TIMINGS
-        time_p = c_step.stop();
-        std::clog << "  SERVER dotprod xi: " << time_p << " (" << (3*client.d) << " Horner/pairings operations)" << std::endl;
-        c_step.start();
+            time_p = c_step.stop();
+            std::clog << "  SERVER dotprod xi: " << time_p << " (" << (3*client.d) << " Horner/pairings operations)" << std::endl;
+            c_step.start();
 #endif
-    }
+        }
 
-        // server computation : compute zeta by blocks
+            // server computation : compute zeta by blocks
 #pragma omp parallel for
-    for(int64_t i=0; i<nbblocks; ++i)
-            // server computation : zeta baby-steps
-        paillier_hom_dp(bzeta[i], server.pub, server.W[i], pows_r, server.W[i].degree());
+        for(int64_t i=0; i<nbblocks; ++i)
+                // server computation : zeta baby-steps
+            paillier_hom_dp(bzeta[i], server.pub, server.W[i], pows_r, server.W[i].degree());
 
-        // server computation : zeta giant-step
-    geo_progression(pows_r, server.bigblocks, rpows, dblocks, rpowsm,
-                    group_mod, time_r);
-    paillier_hom_dp(zeta, server.pub, bzeta, pows_r, dblocks);
+            // server computation : zeta giant-step
+        geo_progression(pows_r, server.bigblocks, rpows, dblocks, rpowsm,
+                        group_mod, time_r);
+        paillier_hom_dp(zeta, server.pub, bzeta, pows_r, dblocks);
 
 #ifdef VESPO_TIMINGS
-    time_e = c_step.stop();
-    std::clog << "  SERVER homo. zeta: " << time_e << " (" << (client.d+1) << " Paillier operations on ciphers)" << std::endl;
+        time_e = c_step.stop();
+        std::clog << "  SERVER homo. zeta: " << time_e << " (" << (client.d+1) << " Paillier operations on ciphers)" << std::endl;
 #endif
 #ifdef VESPO_CHECKERS
-    bn_mxp_dig(tmpz, r, server.W[0].degree()+1, group_mod);
-    if(bn_cmp(tmpz, rpows) == RLC_EQ) {
-        std::clog << "[BASE PAI] \033[1;32mOK\033[0m" << std::endl;
-    } else {
-        std::clog << "[BASE PAI] \033[1;31m****** FAIL ******\033[0m" << std::endl;
-    }
+        bn_mxp_dig(tmpz, r, server.W[0].degree()+1, group_mod);
+        if(bn_cmp(tmpz, rpows) == RLC_EQ) {
+            std::clog << "[BASE PAI] \033[1;32mOK\033[0m" << std::endl;
+        } else {
+            std::clog << "[BASE PAI] \033[1;31m****** FAIL ******\033[0m" << std::endl;
+        }
 #endif
 
-    time_s = c_server.stop();
+        time_s = c_server.stop();
     } // End of server computations
 
 #ifdef VESPO_CHECKERS
@@ -1802,83 +1802,83 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
     gt_t verif2; gt_new(verif2);
 
     {	// Client verification
-    vector vc;
-    Chrono c_client; c_client.start();
+        vector vc;
+        Chrono c_client; c_client.start();
 
 #ifdef VESPO_TIMINGS
-    Chrono c_step; c_step.start();
+        Chrono c_step; c_step.start();
 #endif
 
-    mat_geometric_sum(vc, r, client.msigma, client.d, client.vbeta, group_mod);
+        mat_geometric_sum(vc, r, client.msigma, client.d, client.vbeta, group_mod);
 
 #ifdef VESPO_TIMINGS
-    time_cg = c_step.stop();
-    std::clog << "  CLIENT mat geosum: " << time_cg << std::endl;
-    c_step.start();
+        time_cg = c_step.stop();
+        std::clog << "  CLIENT mat geosum: " << time_cg << std::endl;
+        c_step.start();
 #endif
 
-    // Client: Deciphering Paillier to get z
-    PAILLIER_DECIPHER(z,client.pub, client.prv, zeta);
-    bn_mod(z.m,z.m,group_mod);
+            // Client: Deciphering Paillier to get z
+        PAILLIER_DECIPHER(z,client.pub, client.prv, zeta);
+        bn_mod(z.m,z.m,group_mod);
 
 #ifdef VESPO_TIMINGS
-    time_cp = c_step.stop();
-    std::clog << "  CLIENT paillier D: " << time_cp << std::endl;
-    c_step.start();
+        time_cp = c_step.stop();
+        std::clog << "  CLIENT paillier D: " << time_cp << std::endl;
+        c_step.start();
 #endif
 
 
-	// Client: dot-product verification
-	// s-r
-    bn_sub(tmpz, client.s, r);
-    bn_mod(tmpz, tmpz, group_mod);
+            // Client: dot-product verification
+            // s-r
+        bn_sub(tmpz, client.s, r);
+        bn_mod(tmpz, tmpz, group_mod);
 
-	// c <-- alpha D(zeta) + c
-    vespo_addinmul(vc.first, client.valpha.first, z.m);
-    bn_mod(vc.first, vc.first, group_mod);
+            // c <-- alpha D(zeta) + c
+        vespo_addinmul(vc.first, client.valpha.first, z.m);
+        bn_mod(vc.first, vc.first, group_mod);
 
-	// c <-- alpha D(zeta) + c
-    vespo_addinmul(vc.second, client.valpha.second, z.m);
-    bn_mod(vc.second, vc.second, group_mod);
+            // c <-- alpha D(zeta) + c
+        vespo_addinmul(vc.second, client.valpha.second, z.m);
+        bn_mod(vc.second, vc.second, group_mod);
 
 
 #ifdef VESPO_TIMINGS
-    time_cc = c_step.stop();
-    c_step.start();
+        time_cc = c_step.stop();
+        c_step.start();
 #endif
 
-	// xi^{s-r} * e^{alpha D(zeta) + c}
-    //       First possiblity: via exp_sim
+            // xi^{s-r} * e^{alpha D(zeta) + c}
+            //       First possiblity: via exp_sim
 //     gt_exp_sim(verif1, sxi1_b, tmpz, client.e_T, vc.first);
 //     gt_exp_sim(verif2, sxi2_b, tmpz, client.e_T, vc.second);
 
-    //       Second possiblity: hand made Shamir trick
+            //       Second possiblity: hand made Shamir trick
 //     gt_exp_shamir(verif1, sxi1_b, tmpz, client.e_T, vc.first);
 //     gt_exp_shamir(verif2, sxi2_b, tmpz, client.e_T, vc.second);
 
-    //       Third possiblity: no Shamir trick, but with gen, seems faster with BN254 Gt group ...
-    gt_exp(sxi1_b, sxi1_b, tmpz);	// xi^{s-r}
-    gt_exp(sxi2_b, sxi2_b, tmpz);	// xi^{s-r}
-    gt_exp_gen(verif1, vc.first);				// e^{alpha D(zeta) + c}
-    gt_exp_gen(verif2, vc.second);				// e^{alpha D(zeta) + c}
-    gt_mul(verif1, verif1, sxi1_b);
-    gt_mul(verif2, verif2, sxi2_b);
+            //       Third possiblity: no Shamir trick, but with gen, seems faster with BN254 Gt group ...
+        gt_exp(sxi1_b, sxi1_b, tmpz);	// xi^{s-r}
+        gt_exp(sxi2_b, sxi2_b, tmpz);	// xi^{s-r}
+        gt_exp_gen(verif1, vc.first);				// e^{alpha D(zeta) + c}
+        gt_exp_gen(verif2, vc.second);				// e^{alpha D(zeta) + c}
+        gt_mul(verif1, verif1, sxi1_b);
+        gt_mul(verif2, verif2, sxi2_b);
 
 
 #ifdef VESPO_TIMINGS
-    time_ce = c_step.stop();
-    std::clog << "  CLIENT simpow gt : " << time_ce << std::endl;
-    std::clog << "  CLIENT mult      : " << time_cc << std::endl;
+        time_ce = c_step.stop();
+        std::clog << "  CLIENT simpow gt : " << time_ce << std::endl;
+        std::clog << "  CLIENT mult      : " << time_cc << std::endl;
 #endif
 
-    time_c = c_client.stop();
+        time_c = c_client.stop();
 
     } // End of client computations
 
     const bool pass(
-	( gt_cmp(verif1, client.K1_bT) == RLC_EQ ) &&
-	( gt_cmp(verif2, client.K2_bT) == RLC_EQ )
-	);
+        ( gt_cmp(verif1, client.K1_bT) == RLC_EQ ) &&
+        ( gt_cmp(verif2, client.K2_bT) == RLC_EQ )
+        );
 
     if (! pass) {
         printf("\033[1;31mK1_bT :\033[0m "); gt_print(client.K1_bT); printf("\n");
@@ -1901,10 +1901,10 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
 // Main
 //========================================================
 int main(int argc, char * argv[]) {
-    //argv[1]: size of the vector (polynomial degree + 1)
-	//argv[2]: modulus size in bits for Paillier
-    //argv[3]: number of experiments
-    //argv[4]: number of parallel tasks (default is number of threads)
+        //argv[1]: size of the vector (polynomial degree + 1)
+        //argv[2]: modulus size in bits for Paillier
+        //argv[3]: number of experiments
+        //argv[4]: number of parallel tasks (default is number of threads)
 
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " <Vector dimension> <Paillier bitsize> <Verification iterations> [tasks (default=threads)]" << std::endl;
@@ -1917,9 +1917,9 @@ int main(int argc, char * argv[]) {
 #if defined(_OPENMP)
 #pragma omp parallel
 #pragma omp single
-{
-    numthreads = omp_get_num_threads();
-}
+    {
+        numthreads = omp_get_num_threads();
+    }
 #endif
 
     const int64_t degree = std::max(0,atoi(argv[1]) - 1);	// Polynomial degree
@@ -2006,13 +2006,13 @@ int main(int argc, char * argv[]) {
     bn_t r; bn_new(r);
     for(uint64_t i = 0; i < nb_iter; ++i) {
 
-                // Perform i random updates at random monomials
+            // Perform i random updates at random monomials
         for(uint64_t j = 0; j < i; ++j) {
             bn_rand_mod(r, group_mod);
             update(client, server, P, r, std::rand() % (degree+1), time_u[updnum++]);
         }
 
-                // Evaluation point
+            // Evaluation point
         bn_rand_mod(r, group_mod);
 
 #ifdef DEBUG
@@ -2024,7 +2024,7 @@ int main(int argc, char * argv[]) {
 #endif
 
         paillier_plaintext_t z;
-             // Verified evaluation
+            // Verified evaluation
         bool pass = eval(z, client, server, r, nb_tasks, time_c[i], time_s[i]
 #ifdef VESPO_TIMINGS
                          , time_e[i], time_p[i]
@@ -2050,7 +2050,7 @@ int main(int argc, char * argv[]) {
     }
 
 
-         /********************************************************************
+        /********************************************************************
          * VESPo: clean-up
          *******************************************************************/
     bn_free(r);
