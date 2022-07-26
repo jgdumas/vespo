@@ -8,12 +8,12 @@ LIBS_NAME=relic_s gmp rt
 OPTFLAGS += -Ofast -march=native
 
 # Comment/Uncomment compilation variants
-OPTFLAGS += -DVESPO_SUB_TIMINGS 		# detailed timings
-OPTFLAGS += -DCLOCKTYPE=CLOCK_REALTIME -fopenmp	# using the parallel version
-OPTFLAGS += -DVESPO_RELIC_LIMIT_MAX_ALLOC=4096	# limiting RELIC allocation
-OPTFLAGS += -DVESPO_NOTSECURE=100		# only not benchmarking setup
-#OPTFLAGS += -DVESPO_CHECKERS			# Debug: adding checkers
-#OPTFLAGS += -DDEBUG				# Debug: general logs
+VARFLAGS += -DVESPO_SUB_TIMINGS 		# detailed timings
+VARFLAGS += -DCLOCKTYPE=CLOCK_REALTIME -fopenmp	# using the parallel version
+VARFLAGS += -DVESPO_RELIC_LIMIT_MAX_ALLOC=4096	# limiting RELIC allocation
+VARFLAGS += -DVESPO_NOTSECURE=100		# only not benchmarking setup
+#VARFLAGS += -DVESPO_CHECKERS			# Debug: adding checkers
+#VARFLAGS += -DDEBUG				# Debug: general logs
 
 
 # Benchmaring executable
@@ -27,7 +27,7 @@ LOADINGLIBS=${LIBS_NAME:%=-l%}
 INCLUDES=${LIBS_DIR:%=-I%/include}
 LIBFLAGS=${LIBS_DIR:%=-L%/lib}
 
-CFLAGS += ${OPTFLAGS} ${INCLUDES}
-CXXFLAGS += ${OPTFLAGS} ${INCLUDES}
+CFLAGS += ${OPTFLAGS} ${VARFLAGS} ${INCLUDES}
+CXXFLAGS += ${OPTFLAGS} ${VARFLAGS} ${INCLUDES}
 LDFLAGS += ${LIBFLAGS}
 LOADLIBES += ${LOADINGLIBS}

@@ -1,20 +1,19 @@
-/****************************************************************
- * Paramétrés RELIC: ccmake relic-target
- * ARITH                            x64-asm-4l
- * BN_PRECI                         4096
- * FP_PRIME                         254
- * see relic-git-src/cmake/bn.cmake: set(BN_PRECI 4096)
- * see relic-git-src/cmake/fp.cmake: set(FP_PRIME 254)
- ****************************************************************/
+// ==========================================================================
+// VESPo: Verified Evaluation of Secret Polynomials
+// Reference:	https://arxiv.org/abs/2110.02022
+//				J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
+// Authors: J-G Dumas
+// Time-stamp: <26 Jul 22 15:19:06 Jean-Guillaume.Dumas@imag.fr>
+// ==========================================================================
 
 /****************************************************************
- * Parameters RELIC: ccmake relic-target
- * ARITH                            gmp
+ * Example of parameters, see file: preset_x64-pbc-bn254_vespo.sh
+ * Or, parameters RELIC via: ccmake relic-target
+ * ARITH                            x64-asm-4l	(or gmp)
  * BN_PRECI                         4096
- * FP_PRIME                         256
- * FP_QNRES                         OFF
+ * FP_PRIME                         254			(or 256)
  * see relic-git-src/cmake/bn.cmake: set(BN_PRECI 4096)
- * see relic-git-src/cmake/fp.cmake: set(FP_PRIME 256)
+ * see relic-git-src/cmake/fp.cmake: set(FP_PRIME 254) or 256 ...
  ****************************************************************/
 
 #include <time.h>
@@ -1212,9 +1211,12 @@ void paillier_hom_dp(paillier_ciphertext_t& eval,
     std::clog << "[PailCdot] BEG: d°" << degree << std::endl;
 #endif
 
-    bn_mxp_sim_lot(eval.c, reinterpret_cast<const bn_t*>( &(Wi[0])),
-                   reinterpret_cast<const bn_t*>(&(pows_r[0])),
-                   kpub.nsq, degree+1);
+    if (degree>=0)
+        bn_mxp_sim_lot(eval.c, reinterpret_cast<const bn_t*>( &(Wi[0])),
+                       reinterpret_cast<const bn_t*>(&(pows_r[0])),
+                       kpub.nsq, degree+1);
+    else
+        bn_set_dig(eval.c, 1);
 
 #ifdef VESPO_TIMINGS
     double time_r = c_step.stop();
@@ -1516,10 +1518,11 @@ void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
     Chrono c_step; c_step.start();
 #endif
 
+    int64_t sizeloop(N);
     if (nbtasks <= 1 || N < VESPO_G1HM_SMALL || N < nbtasks) {
         g1_mul_sim_lot(RES,P,K,N);
     } else {
-        int64_t taskfactor(nbtasks<<1), sizeloop;
+        int64_t taskfactor(nbtasks<<1);
         do {
             sizeloop = std::ceil((double)N/(double(taskfactor)));
             taskfactor <<= 1;
@@ -1553,7 +1556,7 @@ void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
     g1_free(r);
 #endif
 #ifdef VESPO_SUB_TIMINGS
-    std::clog << "    Group 1 MulSimP: " << c_step.stop() << " (" << N << " operations)" << std::endl;
+    std::clog << "    Group 1 MulSimP: " << c_step.stop() << " (" << N << " operations, by " << sizeloop << ")" << std::endl;
 #endif
 }
 
@@ -1587,9 +1590,8 @@ void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
         g1_horner_mxp_seq(U,S,r,from,length);
     } else {
 
+        g1_t tmp; g1_null(tmp); g1_new(tmp);
         for(int64_t i=0; i<(nbtasks-1); ++i) {
-            g1_t tmp; g1_null(tmp); g1_new(tmp);
-
             g1_mul_sim_lot_par(tmp, &(S[from+i*step+1]), &(revpow[1]), step, mod, nbtasks);
 
             g1_mul(U[from+(i+1)*step], U[from+i*step], revpow[0]);
@@ -1645,37 +1647,37 @@ void pairing_sim(gt_t& xi_b, const g1_t* H, const g2_t* T, const int64_t deg) {
 #endif
 }
 
-void pairing_double(gt_t& xi_b, const int64_t deg,
+void pairing_double(gt_t& xi_b, const int64_t length,
                     const int64_t nbblocks, const bn_t& mod,
                     const Polynomial<g1_t>& H, const Polynomial<g2_t>& Ti) {
         // Server xi computation
         //   second step: applying the pairing maps as a dotproduct
 #ifdef VESPO_CHECKERS
-    std::clog << "[PairDblH] BEG: d°" << deg << std::endl;
+    std::clog << "[PairDblH] BEG: len. " << length << std::endl;
 #endif
 #ifdef VESPO_SUB_TIMINGS
     Chrono c_cho; c_cho.start();
 #endif
-
-    int64_t dnbblocks(std::min(nbblocks, deg));
-    const int64_t sizeloop( (int64_t)(std::ceil((double)deg/(double(dnbblocks)))));
-    dnbblocks = (int64_t)(std::ceil((double)deg/(double(sizeloop))));
-    Polynomial<gt_t> Txi(dnbblocks-1,mod);
+    if (length) {
+        int64_t dnbblocks(std::min(nbblocks, length));
+        const int64_t sizeloop( (int64_t)(std::ceil((double)length/(double(dnbblocks)))));
+        dnbblocks = (int64_t)(std::ceil((double)length/(double(sizeloop))));
+        Polynomial<gt_t> Txi(dnbblocks-1,mod);
 #pragma omp parallel for
-    for(int64_t i=0; i<dnbblocks; ++i) {
-        const int64_t ipp(i*sizeloop);
-        pairing_sim(Txi[i], &(H[ipp]), &(Ti[ipp]),
-                    std::min(static_cast<int64_t>(sizeloop), deg-ipp));
+        for(int64_t i=0; i<dnbblocks; ++i) {
+            const int64_t ipp(i*sizeloop);
+            pairing_sim(Txi[i], &(H[ipp]), &(Ti[ipp]),
+                        std::min(static_cast<int64_t>(sizeloop), length-ipp));
+        }
+
+        gt_set_unity(xi_b);
+        for(int64_t i=0; i<dnbblocks; ++i)
+            gt_mul(xi_b, xi_b, Txi[i]);
     }
-
-    gt_set_unity(xi_b);
-    for(int64_t i=0; i<dnbblocks; ++i)
-        gt_mul(xi_b, xi_b, Txi[i]);
-
-//     pairing_sim(xi_b, &(H[0]), &(Ti[0]), deg);
+//     pairing_sim(xi_b, &(H[0]), &(Ti[0]), length);
 
 #ifdef VESPO_SUB_TIMINGS
-    std::clog << "    Pairings prods.: " << c_cho.stop() << " (" << deg << " operations)" << std::endl;
+    std::clog << "    Pairings prods.: " << c_cho.stop() << " (" << length << " operations)" << std::endl;
 #endif
 #ifdef VESPO_CHECKERS
     std::clog << "[PairDblH] END" << std::endl;
@@ -1711,6 +1713,8 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
     Polynomial<paillier_ciphertext_t> bzeta(dblocks, group_mod);
 
     gt_t sxi1_b, sxi2_b; gt_new(sxi1_b); gt_new(sxi2_b);
+    gt_set_unity(sxi1_b); gt_set_unity(sxi2_b);
+
     bn_t tmpz; bn_new(tmpz);
     bn_t rpowsm; bn_new(rpowsm);
     bn_t rpows; bn_new(rpows);
@@ -1744,20 +1748,22 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
         bn_copy(revpow[i],pows_r[step-i]);
     }
 
-        // server computation : compute xi
-    Polynomial<g1_t> Ti(client.d-1, group_mod);
+// server computation : compute xi
+    if (client.d) {
+        Polynomial<g1_t> Ti(client.d-1, group_mod);
 
-    g1_horner_mxp_iter(Ti, server.S, r, 0, client.d, revpow, step,
-                       group_mod, nb_tasks );
+        g1_horner_mxp_iter(Ti, server.S, r, 0, client.d, revpow, step,
+                           group_mod, nb_tasks );
 
-    pairing_double(sxi1_b, client.d, nb_tasks, group_mod, Ti, server.H1_b);
-    pairing_double(sxi2_b, client.d, nb_tasks, group_mod, Ti, server.H2_b);
+        pairing_double(sxi1_b, client.d, nb_tasks, group_mod, Ti, server.H1_b);
+        pairing_double(sxi2_b, client.d, nb_tasks, group_mod, Ti, server.H2_b);
 
 #ifdef VESPO_TIMINGS
-    time_p = c_step.stop();
-    std::clog << "  SERVER dotprod xi: " << time_p << " (" << (3*client.d) << " Horner/pairings operations)" << std::endl;
-    c_step.start();
+        time_p = c_step.stop();
+        std::clog << "  SERVER dotprod xi: " << time_p << " (" << (3*client.d) << " Horner/pairings operations)" << std::endl;
+        c_step.start();
 #endif
+    }
 
         // server computation : compute zeta by blocks
 #pragma omp parallel for
@@ -1906,7 +1912,7 @@ int main(int argc, char * argv[]) {
     }
 
     std::srand(std::time(nullptr));
-    int numthreads(1);
+    int64_t numthreads(1);
 
 #if defined(_OPENMP)
 #pragma omp parallel
@@ -1916,10 +1922,10 @@ int main(int argc, char * argv[]) {
 }
 #endif
 
-    const int64_t degree = atoi(argv[1]) - 1;	// Polynomial degree
+    const int64_t degree = std::max(0,atoi(argv[1]) - 1);	// Polynomial degree
     const uint64_t pailliersize = atoi(argv[2]);// Paillier bitsize
     const uint64_t nb_iter = atoi(argv[3]);		// Verification iterations
-    const int nb_tasks = (argc>4?atoi(argv[4]):std::min(numthreads,(int)degree));	// tasks
+    const int nb_tasks = (argc>4?atoi(argv[4]):std::min(numthreads,degree+1));	// tasks
 
         /********************************************************************
          * RELIC SETUP
@@ -2035,9 +2041,9 @@ int main(int argc, char * argv[]) {
 #ifdef VESPO_CHECKERS
             // Audit has passed, but is the protocol sound?
         if(bn_cmp(Pr,z.m) == RLC_EQ) {
-            std::clog << "[PAILLIER] \033[1;32mOK\033[0m" << std::endl;
+            std::clog << "[SOUNDNESS] \033[1;32mOK\033[0m" << std::endl;
         } else {
-            std::cerr << "[PAILLIER] \033[1;31m****** FAIL ******\033[0m" << std::endl;
+            std::cerr << "[SOUNDNESS] \033[1;31m****** FAIL ******\033[0m" << std::endl;
         }
         bn_free(Pr);
 #endif
