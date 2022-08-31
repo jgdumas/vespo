@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <26 Jul 22 15:20:44 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <31 Aug 22 16:34:55 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -32,6 +32,7 @@
 extern "C" {
 #endif
 #include "relic/relic.h"
+#include "relic/relic_conf.h"
 #ifdef __cplusplus
 }
 #endif
@@ -537,13 +538,13 @@ void TMMP(bn_t& s0, bn_t& s1,
 #endif
     if (d<=1) {
         if (d==1) {
-            vespo_init_set_ui(s0,0);
-            vespo_init_set_ui(s1,1);
+            bn_set_dig(s0,0);
+            bn_set_dig(s1,1);
             return;
         }
         if (d==0) {
-            vespo_init_set_ui(s0,1);
-            vespo_init_set_ui(s1,0);
+            bn_set_dig(s0,1);
+            bn_set_dig(s1,0);
             return;
         }
         if (d<0) {
@@ -552,15 +553,16 @@ void TMMP(bn_t& s0, bn_t& s1,
         }
     }
 
-    bn_t t0, t1; bn_new(t0); bn_new(t1);
+    bn_t t0, t1; bn_null(t0); bn_null(t1); bn_new(t0); bn_new(t1);
     TMMP(t0, t1, p0, p1, d>>1, mod);			// Recursive call
 
     sqr_modcharp(s0, s1, p0, p1, t0, t1, mod);	// T^2		mod P
+    bn_free(t0);bn_free(t1);
+
     if (d & 0x1) {
         mulinx_modcharp(s0, s1, p0, p1, mod);	// X T^2	mod P
     }
 
-    bn_free(t0);bn_free(t1);
 #ifdef DEBUG
     std::clog << "[2MMP] " << d << " END" << std::endl;
 #endif
@@ -571,7 +573,7 @@ void moddet(bn_t& det,
             const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
             const bn_t& mod) {
         // Determinant of <<a|b>,<c|d>>
-    bn_t tmp; bn_new(tmp);
+    bn_t tmp; bn_null(tmp); bn_new(tmp);
 
     bn_mul(det, a, d);		// ad
     bn_mul(tmp, b, c);		// bc
@@ -592,7 +594,7 @@ void modcharpoly(bn_t& p0, bn_t& p1,
         // Characteristic polynomial of <<a|b>,<c|d>>
         // (ad-bc) - (a+d) X + X^2
 
-    bn_t tmp; bn_new(tmp);
+    bn_t tmp; bn_null(tmp); bn_new(tmp);
 
     bn_add(p1, a, d);	// a+d
     bn_neg(p1, p1);
@@ -612,7 +614,7 @@ void matvectmod(bn_t& u0, bn_t& u1,
     std::clog << matrix(a,b,c,d) << '.' << vector(v0,v1) << " - ";
 #endif
         // < a v0 + b v1 , c v0 + d v1 >
-    bn_t tmp; bn_new(tmp);
+    bn_t tmp; bn_null(tmp); bn_new(tmp);
 
     bn_mul(u0, a, v0);
     bn_mul(tmp, b, v1);
@@ -644,18 +646,20 @@ void PMGS(vector& u, const matrix& M,
     std::clog << "[PMGS] " << k << " BEG" << std::endl;
 #endif
         // Characteristic polynomial
-    bn_t p0, p1; bn_new(p0); bn_new(p1);
+    bn_t p0, p1; bn_null(p0); bn_null(p1); bn_new(p0); bn_new(p1);
     modcharpoly(p0, p1, M.a, M.b, M.c, M.d, mod);
 
         // (A-I2)^{-1} --> 1/det < < d-1 | -b >, < -c | a-1 > >
-    bn_t dm, nb, nc, am; bn_new(dm); bn_new(nb); bn_new(nc); bn_new(am);
+    bn_t dm, nb, nc, am;
+    bn_null(dm); bn_null(nb); bn_null(nc); bn_null(am);
+    bn_new(dm); bn_new(nb); bn_new(nc); bn_new(am);
     bn_sub_dig(dm, M.d, 1);
     bn_neg(nb, M.b);
     bn_neg(nc, M.c);
     bn_sub_dig(am, M.a, 1);
 
         // Determinant( A-I2 ) --> am dm - b c
-    bn_t idet; bn_new(idet);
+    bn_t idet; bn_null(idet); bn_new(idet);
     moddet(idet, am, M.b, M.c, dm, mod);
     bn_mod_inv(idet, idet, mod);
 
@@ -664,12 +668,14 @@ void PMGS(vector& u, const matrix& M,
 #endif
 
         // (A-I2)^{-1} v
-    bn_t w0, w1; bn_new(w0); bn_new(w1);
+    bn_t w0, w1; bn_null(w0); bn_null(w1); bn_new(w0); bn_new(w1);
     matvectmod(w0, w1, dm, nb, nc, am, v.first, v.second, mod);
     bn_mul(w0, w0, idet);
     bn_mod(w0, w0, mod);
     bn_mul(w1, w1, idet);
     bn_mod(w1, w1, mod);
+
+    bn_free(idet);
 
 #ifdef DEBUG
     std::clog << "1/(" << M << "-IdentityMatrix(2))." << v << " - " << vector(w0,w1) << " mod " << mod << ';' << std::endl;
@@ -677,8 +683,10 @@ void PMGS(vector& u, const matrix& M,
 
 
         // Polynomial Geometric sum
-    bn_t f0, f1; bn_new(f0); bn_new(f1);
+    bn_t f0, f1; bn_null(f0); bn_null(f1); bn_new(f0); bn_new(f1);
     TMMP(f0, f1, p0, p1, k+1, mod);
+
+    bn_free(p0);bn_free(p1);
 
         // F(A) - I2 --> << a*f1+f0-1 | f1*b >, < f1*c | d*f1+f0-1 >>
     bn_sub_dig(dm, f0, 1);	// f0-1
@@ -696,8 +704,12 @@ void PMGS(vector& u, const matrix& M,
     bn_mul(nc, M.c, f1);	// f1*c
     bn_mod(nc, nc, mod);
 
+    bn_free(f0);bn_free(f1);
+
     matvectmod(u.first, u.second, am, nb, nc, dm, w0, w1, mod);
 
+    bn_free(dm);bn_free(nb);bn_free(nc);bn_free(am);
+    bn_free(w0);bn_free(w1);
 
 #ifdef VESPO_CHECKERS
     {
@@ -716,12 +728,6 @@ void PMGS(vector& u, const matrix& M,
         }
     }
 #endif
-
-    bn_free(p0);bn_free(p1);
-    bn_free(dm);bn_free(nb);bn_free(nc);bn_free(am);
-    bn_free(idet);
-    bn_free(w0);bn_free(w1);
-    bn_free(f0);bn_free(f1);
 #ifdef DEBUG
     std::clog << "[PMGS] " << k << " END" << std::endl;
 #endif
@@ -1438,7 +1444,7 @@ bool update(client_t& client, server_t& server,
 #endif
 
         // Client update (2): W
-    bn_t da1, da2; bn_new(da1); bn_null(da1); bn_new(da2); bn_null(da2);
+    bn_t da1, da2; bn_null(da1); bn_new(da1); bn_null(da2); bn_new(da2);
     g2_t Hda1, Hda2; g2_new(Hda1); g2_new(Hda2);
 
     bn_mul(da1, delta, client.valpha.first);
@@ -1452,7 +1458,7 @@ bool update(client_t& client, server_t& server,
     bn_t si; bn_new(si);
     bn_mxp_dig(si, client.s, index, P.modulus()); // s^i mod p
 
-    g2_t Deltaj; g2_new(Deltaj); g2_new(Deltaj);
+    g2_t Deltaj; g2_null(Deltaj); g2_new(Deltaj);
     gt_t DeltagT; gt_new(DeltagT);
 
     g2_mul(Deltaj, Hda1, si);
@@ -1744,7 +1750,6 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
 
         Polynomial<bn_t> revpow(step,group_mod);
         for(int64_t i=0; i<(step+1); ++i) {
-            bn_null(revpow[i]); bn_new(revpow[i]);
             bn_copy(revpow[i],pows_r[step-i]);
         }
 
@@ -1887,7 +1892,7 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
         printf("\033[1;31mverif2:\033[0m "); gt_print(verif2); printf("\n");
     }
 
-    bn_free(tmpz);
+    bn_free(tmpz); bn_free(rpowsm); bn_free(rpows);
     gt_free(sxi1_b); gt_free(sxi2_b);
     gt_free(verif1); gt_free(verif2);
     bn_free(group_mod);
@@ -1936,12 +1941,10 @@ int main(int argc, char * argv[]) {
 	}
 	conf_print();
 
-    pc_core_init();
-
 	if (pc_param_set_any() != RLC_OK) {
 		RLC_THROW(ERR_NO_CURVE);
 		core_clean();
-		return 0;
+		return 1;
 	}
 	pc_param_print();
 
@@ -2055,7 +2058,6 @@ int main(int argc, char * argv[]) {
          *******************************************************************/
     bn_free(r);
     bn_free(group_mod);
-    pc_core_clean();
 	core_clean();
 
         /********************************************************************
