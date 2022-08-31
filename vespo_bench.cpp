@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <31 Aug 22 16:34:55 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <31 Aug 22 17:26:27 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -650,26 +650,33 @@ void PMGS(vector& u, const matrix& M,
     modcharpoly(p0, p1, M.a, M.b, M.c, M.d, mod);
 
         // (A-I2)^{-1} --> 1/det < < d-1 | -b >, < -c | a-1 > >
-    bn_t dm, nb, nc, am;
-    bn_null(dm); bn_null(nb); bn_null(nc); bn_null(am);
-    bn_new(dm); bn_new(nb); bn_new(nc); bn_new(am);
-    bn_sub_dig(dm, M.d, 1);
-    bn_neg(nb, M.b);
-    bn_neg(nc, M.c);
-    bn_sub_dig(am, M.a, 1);
+    bn_t dm, am;
+    bn_null(dm); bn_null(am);
+    bn_new(dm); bn_new(am);
+    bn_sub_dig(dm, M.d, 1); // d-1
+    bn_sub_dig(am, M.a, 1); // a-1
 
         // Determinant( A-I2 ) --> am dm - b c
     bn_t idet; bn_null(idet); bn_new(idet);
     moddet(idet, am, M.b, M.c, dm, mod);
     bn_mod_inv(idet, idet, mod);
 
-#ifdef DEBUG
-    std::clog << "(" << M << "-IdentityMatrix(2))." << matrix(dm, nb, nc, am) << " mod " << mod << ';' << std::endl;
-#endif
 
-        // (A-I2)^{-1} v
+    bn_t t0, t1; bn_null(t0); bn_null(t1); bn_new(t0); bn_new(t1);
     bn_t w0, w1; bn_null(w0); bn_null(w1); bn_new(w0); bn_new(w1);
-    matvectmod(w0, w1, dm, nb, nc, am, v.first, v.second, mod);
+        // w <-- (idet)^{-1}(A-I2)^{-1} v
+        // Direct computation: w = < (d-1)v0 - b v1 , (a-1)v1 -c v0 >
+    bn_mul(t0, dm, v.first);	// (d-1)v0
+    bn_mul(t1, M.b, v.second);	// b v1
+    bn_sub(w0, t0, t1);			// (d-1)v0 - b v1
+    bn_mod(w0, w0, mod);
+
+    bn_mul(t0, am, v.second);	// (a-1)v1
+    bn_mul(t1, M.c, v.first);	// c v0
+    bn_sub(w1, t0, t1);			// (a-1)v1 - c v0
+    bn_mod(w1, w1, mod);
+
+        // Apply the inversed determinant
     bn_mul(w0, w0, idet);
     bn_mod(w0, w0, mod);
     bn_mul(w1, w1, idet);
@@ -694,21 +701,22 @@ void PMGS(vector& u, const matrix& M,
     bn_mod(am, am, mod);
     bn_add(am, am, dm);		// a*f1+f0-1
 
-    bn_mul(nb, M.d, f1);	// d*f1
-	bn_mod(nb, nb, mod);
-    bn_add(dm, nb, dm);		// d*f1+f0-1
+    bn_mul(t0, M.d, f1);	// d*f1
+	bn_mod(t0, t0, mod);
+    bn_add(dm, t0, dm);		// d*f1+f0-1
 
-    bn_mul(nb, M.b, f1);	// f1*b
-    bn_mod(nb, nb, mod);
+    bn_mul(t0, M.b, f1);	// f1*b
+    bn_mod(t0, t0, mod);
 
-    bn_mul(nc, M.c, f1);	// f1*c
-    bn_mod(nc, nc, mod);
+    bn_mul(t1, M.c, f1);	// f1*c
+    bn_mod(t1, t1, mod);
 
-    bn_free(f0);bn_free(f1);
+    bn_free(f0); bn_free(f1);
 
-    matvectmod(u.first, u.second, am, nb, nc, dm, w0, w1, mod);
+    matvectmod(u.first, u.second, am, t0, t1, dm, w0, w1, mod);
 
-    bn_free(dm);bn_free(nb);bn_free(nc);bn_free(am);
+    bn_free(dm);bn_free(t0);bn_free(t1);bn_free(am);
+    bn_free(t0);bn_free(t1);
     bn_free(w0);bn_free(w1);
 
 #ifdef VESPO_CHECKERS
@@ -722,9 +730,9 @@ void PMGS(vector& u, const matrix& M,
         }
         s.modin(mod);
         if (u.areEqual(s)) {
-            std::clog << "[ PGMS ] \033[1;32mOK\033[0m" << std::endl;
+            std::clog << "[ PMGS ] \033[1;32mOK\033[0m" << std::endl;
         } else {
-            std::cerr << "[ PGMS ] \033[1;31m****** FAIL ******\033[0m" << std::endl;
+            std::cerr << "[ PMGS ] \033[1;31m****** FAIL ******\033[0m" << std::endl;
         }
     }
 #endif
