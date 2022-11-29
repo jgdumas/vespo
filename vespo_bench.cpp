@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <31 Aug 22 17:26:27 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <29 Nov 22 13:24:11 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -35,13 +35,6 @@ extern "C" {
 #include "relic/relic_conf.h"
 #ifdef __cplusplus
 }
-#endif
-
-// If using a version of relic without simultaneous bn_mxp
-#ifndef BN_XPWDT
-    // Size of Generalized Shamir trick
-# define BN_XPWDT 7
-# include "relic_bn_mxp_sim.c"
 #endif
 
 #ifdef DEBUG
