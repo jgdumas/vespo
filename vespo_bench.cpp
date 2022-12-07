@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <29 Nov 22 13:24:11 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <07 Dec 22 17:42:45 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -328,7 +328,7 @@ void random_precompute(Polynomial<bn_t>& reusedrands,
                   << "\n*WARNING WARNING* insecure, only benchmarking"
                   << std::endl;
     }
-#pragma omp parallel for
+#pragma omp parallel for shared(reusedrands,prv,pub)
     for (int64_t i = 0; i <= reusedrands.degree(); ++i) {
 		bn_rand_mod(reusedrands[i], prv->a);
 		bn_mxp(reusedrands[i], prv->gn, reusedrands[i], pub.nsq);
@@ -1270,7 +1270,7 @@ Polynomial<g2_t>& powered_poly_gen2(Polynomial<g2_t>& H,
     Chrono c_powpol; c_powpol.start();
 #endif
 
-#pragma omp parallel for
+#pragma omp parallel for shared(P,H)
     for (int64_t i = 0; i < P.degree(); ++i) {
         g2_mul_gen(H[i], P[i+1]);	// g2^{p_(i+1)}
     }
@@ -1295,7 +1295,7 @@ Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, const bn_t& s,
     geo_progression(pows_s, 0, s, d, s, mod, time_s);
 
     g1_get_gen(S[0]);					// Generator in G1
-#pragma omp parallel for
+#pragma omp parallel for shared(pows_s,S)
     for (int64_t i = 1; i <= d; ++i) {
         g1_mul_gen(S[i], pows_s[i]);	// g1^{s^i}
     }
@@ -1542,7 +1542,7 @@ void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
         std::clog << "[G1MuSiLp] nbblocks   : " << nbblocks << std::endl;
 #endif
         Polynomial<g1_t> RR(nbblocks-1,mod);
-#pragma omp parallel for
+#pragma omp parallel for shared(RR,P,K)
         for(int64_t i=0; i<nbblocks; ++i) {
             const int64_t ipp(i*sizeloop);
             g1_mul_sim_lot(RR[i],&(P[ipp]),&(K[ipp]),
@@ -1607,7 +1607,7 @@ void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
         }
 
 
-#pragma omp parallel for
+#pragma omp parallel for shared(U,S,r)
         for(int64_t i=0; i<nbtasks; ++i) {
             const int64_t ipp(i*step);
             g1_horner_mxp_seq(U, S, r, from+ipp, std::min(step,length-ipp));
@@ -1670,7 +1670,7 @@ void pairing_double(gt_t& xi_b, const int64_t length,
         const int64_t sizeloop( (int64_t)(std::ceil((double)length/(double(dnbblocks)))));
         dnbblocks = (int64_t)(std::ceil((double)length/(double(sizeloop))));
         Polynomial<gt_t> Txi(dnbblocks-1,mod);
-#pragma omp parallel for
+#pragma omp parallel for shared(Txi,H,Ti)
         for(int64_t i=0; i<dnbblocks; ++i) {
             const int64_t ipp(i*sizeloop);
             pairing_sim(Txi[i], &(H[ipp]), &(Ti[ipp]),
@@ -1772,7 +1772,7 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
         }
 
             // server computation : compute zeta by blocks
-#pragma omp parallel for
+#pragma omp parallel for shared(bzeta,server,pows_r)
         for(int64_t i=0; i<nbblocks; ++i)
                 // server computation : zeta baby-steps
             paillier_hom_dp(bzeta[i], server.pub, server.W[i], pows_r, server.W[i].degree());
