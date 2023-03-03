@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <07 Dec 22 17:42:45 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <03 Mar 23 16:37:51 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -173,13 +173,6 @@ void paillier_exp(paillier_ciphertext_t& res,
                   const bn_t w, const bn_t r,
                   const paillier_pubkey_t& kpub) {
     bn_mxp(res.c, w, r, kpub.nsq);
-}
-
-void paillier_exp_sim(paillier_ciphertext_t& res,
-                      const bn_t w[BN_XPWDT], const bn_t r[BN_XPWDT],
-                      const paillier_pubkey_t& kpub) {
-
-    bn_mxp_sim(res.c, w, r, kpub.nsq);
 }
 
 //=====================================================================
@@ -1958,7 +1951,7 @@ int main(int argc, char * argv[]) {
 	util_banner("VESPO:", 0);
 
     std::clog << "  MAX_ALLOC: " << VESPO_RELIC_LIMIT_MAX_ALLOC << std::endl;
-    std::clog << "  SHAMIR_WD: " << BN_XPWDT << std::endl;
+    std::clog << "  SHAMIR_WD: " << RLC_MAX(8, RLC_WIDTH) << std::endl;
     std::clog << "  CLOCK TYP: " << CLOCKTYPE << std::endl;
 	std::clog << "  OMP CORES: " << numthreads << std::endl;
 	std::clog << "  NUM ITERS: " << nb_iter << std::endl;
