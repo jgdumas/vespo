@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <03 Mar 23 16:37:51 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <03 Mar 23 18:19:04 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -140,7 +140,7 @@ typedef struct {
 #define paillier_freeprvkey(a) { shpe_free(a); }
 #define paillier_freepubkey(a) { shpe_free((a).rlc); bn_free((a).nsq); }
 #define paillier_sizepubkey(a) ((bn_size_bin((a).rlc->crt->n)+bn_size_bin((a).nsq))<<3)
-#define paillier_sizeprvkey(a) ((bn_size_bin((a)->crt->n)+bn_size_bin((a)->crt->p)+bn_size_bin((a)->crt->q)+bn_size_bin((a)->crt->dp)+bn_size_bin((a)->crt->dq)+bn_size_bin((a)->crt->qi))<<3)
+#define paillier_sizeprvkey(a) ((bn_size_bin((a)->crt->p)+bn_size_bin((a)->crt->q)+bn_size_bin((a)->crt->dp)+bn_size_bin((a)->crt->dq)+bn_size_bin((a)->crt->qi))<<3)
 
 
 struct paillier_plaintext_t {
@@ -787,11 +787,17 @@ struct client_t {
             // The degree of the polynomial must be stored
         uint64_t size=0;
         size += sizeof(this->d)*8;	// degree
-        size += paillier_sizepubkey( this->pub ); // pubkey
-        size += paillier_sizeprvkey( this->prv ); // prvkey
             // s,K_bT,valpha,vbeta,msigma + MerkleTreeRoot
         size += elements_size*(1+2+2+2+4 + 1);
+        size += paillier_sizeprvkey( this->prv );
         return size;
+    }
+
+    uint64_t privpub_size(uint64_t elements_size) const {
+            // adding keys
+        return private_size(elements_size)
+            + paillier_sizepubkey( this->pub );
+
     }
         //=====================================================================
         // VeSPo: key generation
