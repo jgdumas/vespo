@@ -13,7 +13,7 @@ VARFLAGS += -DCLOCKTYPE=CLOCK_REALTIME -fopenmp	# using the parallel version
 VARFLAGS += -DVESPO_RELIC_LIMIT_MAX_ALLOC=4096	# limiting RELIC allocation
 VARFLAGS += -DVESPO_NOTSECURE=100		# only not benchmarking setup
 #VARFLAGS += -DVESPO_CHECKERS			# Debug: adding checkers
-#VARFLAGS += -DDEBUG				# Debug: general logs
+#VARFLAGS += -DDEBUG					# Debug: general logs
 
 
 # Benchmaring executable
