@@ -2,7 +2,6 @@
 # VESPo: a C++ library for the Verified Evaluation of Secret Polynomials
 --------------------------------------------------------------------------------
 
-
 **Authors**:  Jean-Guillaume Dumas
 
 
@@ -11,23 +10,28 @@
 - [GMP](https://gmplib.org/)  
 
 
-**Installation and running**:
+**Installation**:
+- Automatic
+	- Fetch and run [libvespo-auto-install.sh](https://raw.githubusercontent.com/jgdumas/vespo/main/libvespo-auto-install.sh)
 
-1.  Set the RELIC/GMP path within the Makefile
 
-2.  Toggle compilation flags variants within the Makefile
-
-3.  Compile with
-        `make`
+- By hand
+	1.  Set the RELIC/GMP path within the Makefile
+	2.  Toggle compilation flags variants within the Makefile
+	3.  Compile with `make`
 
 
 **Benchmarking**:
+- Automatic: two different range of benchmarks
+	1. run `Linear-FDT.sh [numthreads (default=32)]`
+	2. run `PoR-FDT.sh [numthreads (default=32)]`
+	3. Parse outputs via `parse_bench.sh bench_*`
 
-- Using executable
-	`vespo_bench`
-- Usage: vespo_bench [Vector dimension] [Paillier bitsize] [Verification iterations] [tasks (default=threads)]
-- Example
-	`./vespo_bench 8192 2048 3`  
+
+- By hand
+	- Using executable `./vespo_bench`
+	- Usage: vespo_bench [Vector dimension] [Paillier bitsize] [Verification iterations] [tasks (default=threads)]
+	- Example `./vespo_bench 8192 2048 3`  
 
 
 **References**:
