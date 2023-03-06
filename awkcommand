@@ -1,7 +1,0 @@
-fgrep 'Eval TIME' bench_lin_i7_1024.txt | awk 'function thres(a){ return (a<0.0001?0.0:a*1000.)} {printf("%d & 1024 & %.2fs & %.2fs & %.1fms & %.1fms & %.1fms & %.1fms \\\\\n",$3,$7,$11,thres($15),thres($19),thres($22),thres($30))}' | sed 's/0.0ms/$<$0.1ms/g'
-
-fgrep 'Eval TIME' bench_lin_i7_2048.txt | awk 'function thres(a){ return (a<0.0001?0.0:a*1000.)} {printf("%d & 2048 & %.2fs & %.2fs & %.1fms & %.1fms & %.1fms & %.1fms \\\\\n",$3,$7,$11,thres($15),thres($19),thres($22),thres($30))}' | sed 's/0.0ms/$<$0.1ms/g'
-
-fgrep 'Eval DEVI' bench_lin_i7_1024.txt | sed 's/%//g' | awk '{ a[++c]=$7;a[++c]=$11;a[++c]=$15;a[++c]=$22;a[++c]=$26} END{ asort(a); print "Deviation 1024: ",length(a),a[1],a[length(a)-3] }'
-
-fgrep 'Eval DEVI' bench_lin_i7_2048.txt | sed 's/%//g' | awk '{ a[++c]=$7;a[++c]=$11;a[++c]=$15;a[++c]=$22;a[++c]=$26} END{ asort(a); print "Deviation 2048: ",length(a),a[1],a[length(a)-3] }'
