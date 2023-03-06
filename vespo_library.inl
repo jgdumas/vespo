@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <06 Mar 23 18:21:45 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <06 Mar 23 18:30:36 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -74,7 +74,7 @@ template<> inline std::ostream& printer<gt_t>(std::ostream& o, const gt_t& e) { 
 
 
 template<typename Element>
-inline Polynomial<Element>::Polynomial(const int64_t degree, 
+inline Polynomial<Element>::Polynomial(const int64_t degree,
                                        const bn_t& modulus) :
         mod(modulus), d(degree), data(new Element[degree+1]) {
     for (int64_t i = 0; i <= degree; ++i) {
@@ -1058,9 +1058,9 @@ inline Polynomial<g2_t>& powered_poly_gen2(Polynomial<g2_t>& H,
     return H;
 }
 
-inline Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, 
+inline Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S,
                                                const bn_t& s,
-                                               const int64_t d, 
+                                               const int64_t d,
                                                const bn_t& mod) {
         // S[i] <-- g1^{s^i}
     std::clog << "[PowProg] BEG: d°" << d << std::endl;

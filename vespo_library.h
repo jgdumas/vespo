@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <06 Mar 23 18:19:48 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <06 Mar 23 18:30:21 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -162,7 +162,7 @@ struct vector {
     ~vector();
     vector(const bn_t& f, const bn_t& s);
     vector(const vector& v) ;
-    
+
     void randomize(const bn_t mod);
     void modin(const bn_t& r) ;
     void copy(const vector& v) ;
