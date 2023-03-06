@@ -5,7 +5,7 @@
 
 ### VESPO git sources and commit ###
 VESPO_GITDIR=git@github.com:jgdumas/vespo.git
-VESPO_COMMIT=aadb93d
+VESPO_COMMIT=44b3496
 
 ### RELIC git sources and commit ###
 RELIC_GITDIR=git@github.com:relic-toolkit/relic.git
