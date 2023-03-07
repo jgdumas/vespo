@@ -73,7 +73,7 @@ cd ../..
 ### Build VESPO ###
 echo -e "${BEG}building VESPO ..."| tee -a ${LOGFILE}
 cd vespo
-OK=0; LIBS_DIR=../relic make | tee -a ../${LOGFILE} || die && OK=1
+OK=0; make LIBS_DIR=../relic | tee -a ../${LOGFILE} || die && OK=1
 [ "$OK" = "1" ] && cool | tee -a ../${LOGFILE} || die
 cd ..
 
