@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <06 Mar 23 18:30:36 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <07 Mar 23 12:20:22 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -765,7 +765,6 @@ inline bool check_pubkey(const client_t& client, const server_t& server,
 
 inline bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
                    const bn_t& r, const int64_t deg, const bn_t& mod) {
-
     bool pass(true);
     g2_t U;
     g2_copy(U, S[0]);
@@ -784,20 +783,19 @@ inline bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
 inline bool check_g1_hmxp(const Polynomial<g1_t>& T, const Polynomial<g1_t>& S,
                    const bn_t& r, const int64_t from, const int64_t length,
                    const bn_t& mod) {
-
     const int64_t deg(from+length-1);
     bool pass(true);
-    Polynomial<g1_t> U(deg,mod);
-    g1_copy(U[0], S[0]);
-    if (g1_cmp(U[0], T[0]) != RLC_EQ) {
-        printer(printer(std::cerr << "check_g1_hmxp: U[0] != T[0]: ", U[0]) << ' ', T[0]) << std::endl;
+    g1_t U;
+    g1_copy(U, S[0]);
+    if (g1_cmp(U, T[0]) != RLC_EQ) {
+        printer(printer(std::cerr << "check_g1_hmxp: U[0] != T[0]: ", U) << ' ', T[0]) << std::endl;
         pass = false;
     }
     for (int64_t i = 1; i <= deg; ++i) {
-        g1_mul(U[i], U[i-1], r);		// t^r
-        g1_add(U[i], U[i], S[i]);		// S_{i-1} t^r
-        if ( (i>= from) && (g1_cmp(U[i], T[i]) != RLC_EQ)) {
-            printer(printer(std::cerr << "check_g1_hmxp: U[" << i << "] != T[" << i << "]: ", U[i]) << ' ', T[i]) << std::endl;
+        g1_mul(U, U, r);		// t^r
+        g1_add(U, U, S[i]);		// S_{i-1} t^r
+        if ( (i>= from) && (g1_cmp(U, T[i]) != RLC_EQ)) {
+            printer(printer(std::cerr << "check_g1_hmxp: U[" << i << "] != T[" << i << "]: ", U) << ' ', T[i]) << std::endl;
             pass = false;
         }
     }
@@ -1372,26 +1370,54 @@ inline void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
 #endif
     g1_copy(U[0], S[0]);
 
-    if (nbtasks<=1 || length <= VESPO_G1HM_SMALL || length <= nbtasks) {
+    if (nbtasks<=1 || step<=1 || length<=VESPO_G1HM_SMALL || length<=nbtasks) {
         g1_horner_mxp_seq(U,S,r,from,length);
     } else {
+        const int64_t smallloops(step*nbtasks-length);
+        const int64_t largeloops(nbtasks-smallloops);
+        const int64_t sstep(step-1);
+        const int64_t lstep(step);
+
+        int64_t smallprecomp(smallloops);
+        int64_t largeprecomp(largeloops);
+		// one precomputation less than tasks
+        if (smallloops) {
+            --smallprecomp;
+        } else {
+            --largeprecomp;
+        }
 
         g1_t tmp; g1_null(tmp); g1_new(tmp);
-        for(int64_t i=0; i<(nbtasks-1); ++i) {
-            g1_mul_sim_lot_par(tmp, &(S[from+i*step+1]), &(revpow[1]), step, mod, nbtasks);
+        for(int64_t i=0; i<largeprecomp; ++i) {
+            const int64_t bipp(from+i*lstep);
+            const int64_t eipp(bipp+lstep);
+            g1_mul_sim_lot_par(tmp, &(S[bipp+1]), &(revpow[1]), lstep, mod, nbtasks);
+            g1_mul(U[eipp], U[bipp], revpow[0]);
+            g1_add(U[eipp], U[eipp], tmp);
+        }
 
-            g1_mul(U[from+(i+1)*step], U[from+i*step], revpow[0]);
-            g1_add(U[from+(i+1)*step], U[from+(i+1)*step], tmp);
+        for(int64_t i=0; i<smallprecomp; ++i) {
+            const int64_t bipp(from+largeprecomp*lstep+i*sstep);
+            const int64_t eipp(bipp+sstep);
+            g1_mul_sim_lot_par(tmp, &(S[bipp+1]), &(revpow[2]), sstep, mod, nbtasks);
+            g1_mul(U[eipp], U[bipp], revpow[1]);
+            g1_add(U[eipp], U[eipp], tmp);
 
         }
 
 
 #pragma omp parallel for shared(U,S,r)
         for(int64_t i=0; i<nbtasks; ++i) {
-            const int64_t ipp(i*step);
-            g1_horner_mxp_seq(U, S, r, from+ipp, std::min(step,length-ipp));
+            if (i<largeloops) {
+                const int64_t bipp(from+i*step);
+                const int64_t mstep(lstep);
+                g1_horner_mxp_seq(U, S, r, bipp, mstep);
+            } else {
+                const int64_t bipp(from+largeloops*lstep+(i-largeloops)*sstep);
+                const int64_t mstep(sstep);
+                g1_horner_mxp_seq(U, S, r, bipp, mstep);
+            }
         }
-
     }
 #ifdef VESPO_SUB_TIMINGS
     std::clog << "    Group 1 Horner : " << c_cho.stop() << " (" << length << " operations)" << std::endl;
@@ -1448,6 +1474,7 @@ inline void pairing_double(gt_t& xi_b, const int64_t length,
         int64_t dnbblocks(std::min(nbblocks, length));
         const int64_t sizeloop( (int64_t)(std::ceil((double)length/(double(dnbblocks)))));
         dnbblocks = (int64_t)(std::ceil((double)length/(double(sizeloop))));
+
         Polynomial<gt_t> Txi(dnbblocks-1,mod);
 #pragma omp parallel for shared(Txi,H,Ti)
         for(int64_t i=0; i<dnbblocks; ++i) {
@@ -1612,7 +1639,6 @@ inline bool eval(paillier_plaintext_t& z, const client_t& client,
         c_step.start();
 #endif
 
-
             // Client: dot-product verification
             // s-r
         bn_sub(tmpz, client.s, r);
@@ -1649,14 +1675,15 @@ inline bool eval(paillier_plaintext_t& z, const client_t& client,
         gt_mul(verif1, verif1, sxi1_b);
         gt_mul(verif2, verif2, sxi2_b);
 
+        time_c = c_client.stop();
 
 #ifdef VESPO_TIMINGS
         time_ce = c_step.stop();
         std::clog << "  CLIENT simpow gt : " << time_ce << std::endl;
         std::clog << "  CLIENT mult      : " << time_cc << std::endl;
+        time_c = time_cg+time_cp+time_cc+time_ce; // Not count std::clog
 #endif
 
-        time_c = c_client.stop();
 
     } // End of client computations
 

@@ -17,9 +17,11 @@ VARFLAGS += -DVESPO_NOTSECURE=100		# only not benchmarking setup
 
 
 # Benchmaring executable
-OBJ=vespo_bench
+EXE=vespo_bench
+SRC=${EXE:%=%.cpp}
+DEP=vespo_library.h vespo_library.inl
 
-all: ${OBJ}
+all: ${EXE}
 
 
 # Generic compilation
@@ -27,7 +29,9 @@ LOADINGLIBS=${LIBS_NAME:%=-l%}
 INCLUDES=${LIBS_DIR:%=-I%/include}
 LIBFLAGS=${LIBS_DIR:%=-L%/lib}
 
-CFLAGS += ${OPTFLAGS} ${VARFLAGS} ${INCLUDES}
 CXXFLAGS += ${OPTFLAGS} ${VARFLAGS} ${INCLUDES}
 LDFLAGS += ${LIBFLAGS}
 LOADLIBES += ${LOADINGLIBS}
+
+${EXE}: ${SRC} ${DEP}
+	$(LINK.cpp) $< $(LOADLIBES) $(LDLIBS) -o $@
