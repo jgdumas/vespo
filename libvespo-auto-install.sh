@@ -5,11 +5,11 @@
 
 ### VESPO git sources and commit ###
 VESPO_GITDIR=git@github.com:jgdumas/vespo.git
-VESPO_COMMIT=2b559d1
+VESPO_COMMIT=9961a7e
 
 ### RELIC git sources and commit ###
 RELIC_GITDIR=git@github.com:relic-toolkit/relic.git
-RELIC_COMMIT=04154faa
+RELIC_COMMIT=4e87ddc0
 
 ###  ###
 LOGFILE=libvespo-auto-install.log
