@@ -11,9 +11,11 @@
 
 
 **Installation**:
-- Automatic
+- Automatic (will install RELIC -- for now with x64-asm-4l arithmetic backend --) 
 	- Fetch and run [libvespo-auto-install.sh](https://raw.githubusercontent.com/jgdumas/vespo/main/libvespo-auto-install.sh)
-
+		- Supposes GMP is already installed
+		- Will clone and install RELIC (for now only with `x64-asm-4l` arithmetic backend)
+		- Will clone and install VESPo
 
 - By hand (supposing RELIC is already installed)
 	1.  Clone the vespo directory and `cd vespo`
