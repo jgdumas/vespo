@@ -35,8 +35,8 @@ cool() {
 
 
 ### Create local directory ###
-mkdir libvespo
-cd libvespo
+echo "mkdir libvespo && cd libvespo"
+mkdir libvespo && cd libvespo
 
 
 ### Extract RELIC sources ###
