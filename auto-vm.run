@@ -1,0 +1,25 @@
+#####################################################
+### VESPo complete example
+### Copyright(c) 2023 Jean-Guillaume Dumas
+#####################################################
+
+#####################################################
+### Requirements: we suppose an existing environment,
+###           with git, cmake, c++, OpenMP, GMP, etc.
+### For instance via a vritual machine,
+###     e.g., using vagrant with libvirt, and debian:
+# > vagrant init debian/bullseye64
+# > vagrant up --provider=libvirt
+# > vagrant ssh
+
+#####################################################
+### Install & run benchmarks, within the environment:
+
+sudo apt install wget git g++ cmake libgmp-dev 
+wget https://raw.githubusercontent.com/jgdumas/vespo/main/libvespo-auto-install.sh
+chmod +x libvespo-auto-install.sh 
+./libvespo-auto-install.sh 
+cd libvespo/vespo
+./vespo_bench 256 2048 3
+./Linear-FDT.sh 4
+./parse_bench bench_*

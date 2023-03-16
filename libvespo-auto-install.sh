@@ -3,6 +3,14 @@
 # libvespo auto installer
 # Copyright(c) 2023 Jean-Guillaume Dumas <Jean-Guillaume.Dumas@imag.fr>
 
+### By default compile relic with 4 threads
+MAKETHREADS=4
+if [ ! -z "$1" ]
+then
+  MAKETHREADS=$1
+fi
+
+
 ### VESPO git sources and commit ###
 VESPO_GITDIR=https://github.com/jgdumas/vespo.git
 VESPO_COMMIT=60791a2
@@ -65,8 +73,8 @@ cd relic
 mkdir relic-target | tee -a ../${LOGFILE}
 cd relic-target
 cmake -DWITH=ALL -DALLOC=AUTO -DWSIZE=64 -DRAND=UDEV -DSHLIB=OFF -DSTBIN=ON -DTIMER=CYCLE -DCHECK=off -DVERBS=off -DARITH=x64-asm-4l -DFP_PRIME=254 -DFP_METHD="INTEG;INTEG;INTEG;MONTY;LOWER;LOWER;SLIDE" -DCFLAGS="-Ofast -funroll-loops -fomit-frame-pointer -finline-small-functions -march=native -mtune=native" -DFP_PMERS=off -DFP_QNRES=on -DFPX_METHD="INTEG;INTEG;LAZYR" -DPP_METHD="LAZYR;OATEP" -DBN_PRECI=4096 -DCMAKE_BUILD_TYPE=Release -DBENCH=10 -DTESTS=10 -DCMAKE_INSTALL_PREFIX="../" .. | tee -a ../../${LOGFILE}
-make -j | tee -a ../../${LOGFILE}
-OK=0; make -j install | tee -a ../../${LOGFILE} || die && OK=1
+make -j ${MAKETHREADS} | tee -a ../../${LOGFILE}
+OK=0; make install | tee -a ../../${LOGFILE} || die && OK=1
 [ "$OK" = "1" ] && cool | tee -a ../../${LOGFILE} || die
 cd ../..
 
