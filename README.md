@@ -17,7 +17,7 @@
 	- Requires a linux virtual machine or sudoer rights to install packages
 	- Will install distribution packages: `wget`, `git`, `g++`, `cmake`, `libgmp-dev`.
 	- Then clone and install `relic`, `libvespo`
-	- Then run one small example and a benchmark with increasing degrees
+	- Then run one small example and a large benchmark with increasing degrees
 
 
 

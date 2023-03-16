@@ -6,7 +6,7 @@
 #####################################################
 
 START=$1
-ENDLO=$2 
+ENDLO=$2
 
 if [ $# -lt 3 ]; then
       NBTASKS=4
@@ -32,7 +32,7 @@ TOTALT=$((SIZLD * ITER))
 
 i=${START}
 while [ $i -le $ENDLO ]
-do 
+do
   echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m, OMP_NUM_THREADS=4 ./vespo_bench $i ${SECU} ${ITER} ${NBTASKS}\r"
   OMP_NUM_THREADS=4 ./vespo_bench $i ${SECU} ${ITER} ${NBTASKS} &>> ${LINFIL}
   i=$(( $i + 1 ))
@@ -41,4 +41,3 @@ do
   PERCEN=$(( (100 * PASSED) / TOTALT ))
 done
 echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m                                                   \n"
-
