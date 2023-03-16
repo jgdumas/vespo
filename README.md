@@ -13,7 +13,7 @@
 **Installation**:
 - Automatic (will install RELIC -- for now with x64-asm-4l arithmetic backend --) 
 	- Fetch and run [libvespo-auto-install.sh](https://raw.githubusercontent.com/jgdumas/vespo/main/libvespo-auto-install.sh)
-		- Still some requirements (c++ compiler, OpenMP, cmake, GMP --dev: headers & library--, ... already installed)
+		- Still some requirements (git, cmake, c++ compiler, OpenMP, GMP --dev: headers & library--, ... already installed)
 		- Will clone and install RELIC (for now only with `x64-asm-4l` arithmetic backend)
 		- Will clone and install VESPo
 
