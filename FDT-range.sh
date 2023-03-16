@@ -14,6 +14,12 @@ else
       NBTASKS=$3
 fi
 
+if [ $# -lt 4 ]; then
+      THREADS=${NBTASKS}
+else
+      THREADS=$4
+fi
+
 SECU=2048
 ITER=2
 
@@ -33,8 +39,11 @@ TOTALT=$((SIZLD * ITER))
 i=${START}
 while [ $i -le $ENDLO ]
 do
-  echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m, OMP_NUM_THREADS=4 ./vespo_bench $i ${SECU} ${ITER} ${NBTASKS}\r"
-  OMP_NUM_THREADS=4 ./vespo_bench $i ${SECU} ${ITER} ${NBTASKS} &>> ${LINFIL}
+  echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m, OMP_NUM_THREADS=${THREADS} ./vespo_bench $i ${SECU} ${ITER} ${NBTASKS}\r"
+
+  # Benchmaring
+  OMP_NUM_THREADS=${THREADS} ./vespo_bench $i ${SECU} ${ITER} ${NBTASKS} &>> ${LINFIL}
+
   i=$(( $i + 1 ))
   PCURR=`grep VAUDIT ${LINFIL} | grep OK | wc -l`
   PASSED=$((PCURR-PINIT))
