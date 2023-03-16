@@ -13,7 +13,7 @@ fi
 
 ### VESPO git sources and commit ###
 VESPO_GITDIR=https://github.com/jgdumas/vespo.git
-VESPO_COMMIT=60791a2
+VESPO_COMMIT=ae66a0b
 
 ### RELIC git sources and commit ###
 RELIC_GITDIR=https://github.com/relic-toolkit/relic.git
