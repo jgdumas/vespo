@@ -20,6 +20,6 @@ wget https://raw.githubusercontent.com/jgdumas/vespo/main/libvespo-auto-install.
 chmod +x libvespo-auto-install.sh 
 ./libvespo-auto-install.sh 
 cd libvespo/vespo
-./vespo_bench 256 2048 3
+./vespo_bench 123 2048 3
 ./Linear-FDT.sh 4
 ./parse_bench.sh bench_*
