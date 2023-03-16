@@ -22,4 +22,4 @@ chmod +x libvespo-auto-install.sh
 cd libvespo/vespo
 ./vespo_bench 256 2048 3
 ./Linear-FDT.sh 4
-./parse_bench bench_*
+./parse_bench.sh bench_*
