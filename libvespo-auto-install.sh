@@ -4,11 +4,11 @@
 # Copyright(c) 2023 Jean-Guillaume Dumas <Jean-Guillaume.Dumas@imag.fr>
 
 ### VESPO git sources and commit ###
-VESPO_GITDIR=git@github.com:jgdumas/vespo.git
-VESPO_COMMIT=716f9a2
+VESPO_GITDIR=https://github.com/jgdumas/vespo.git
+VESPO_COMMIT=60791a2
 
 ### RELIC git sources and commit ###
-RELIC_GITDIR=git@github.com:relic-toolkit/relic.git
+RELIC_GITDIR=https://github.com/relic-toolkit/relic.git
 RELIC_COMMIT=4e87ddc0
 
 ###  ###
