@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#####################################################
+### VESPo benchmarks for PoR on 1GB, 10GB, 100GB, 1TB
+### Copyright(c) 2023 Jean-Guillaume Dumas
+#####################################################
+
+
 if [ $# -lt 1 ]; then
       NBTHREADS=32
 else

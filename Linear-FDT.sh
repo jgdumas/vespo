@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#####################################################
+### VESPo benchmarks with increasing degrees
+### Copyright(c) 2023 Jean-Guillaume Dumas
+#####################################################
+
+
 if [ $# -lt 1 ]; then
       NBTHREADS=32
 else
