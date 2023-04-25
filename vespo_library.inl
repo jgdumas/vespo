@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <07 Mar 23 12:20:22 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <25 Apr 23 09:54:52 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -1507,7 +1507,7 @@ inline bool eval(paillier_plaintext_t& z, const client_t& client,
           double& time_c, double& time_s
 #ifdef VESPO_TIMINGS
           , double& time_e, double& time_p,
-          double& time_ce, double& time_cg, double& time_cp, double &time_cc
+          double& time_ce, double& time_cg, double& time_cp
 #endif
           ) {
 
@@ -1652,12 +1652,6 @@ inline bool eval(paillier_plaintext_t& z, const client_t& client,
         vespo_addinmul(vc.second, client.valpha.second, z.m);
         bn_mod(vc.second, vc.second, group_mod);
 
-
-#ifdef VESPO_TIMINGS
-        time_cc = c_step.stop();
-        c_step.start();
-#endif
-
             // xi^{s-r} * e^{alpha D(zeta) + c}
             //       First possiblity: via exp_sim
 //     gt_exp_sim(verif1, sxi1_b, tmpz, client.e_T, vc.first);
@@ -1680,8 +1674,7 @@ inline bool eval(paillier_plaintext_t& z, const client_t& client,
 #ifdef VESPO_TIMINGS
         time_ce = c_step.stop();
         std::clog << "  CLIENT simpow gt : " << time_ce << std::endl;
-        std::clog << "  CLIENT mult      : " << time_cc << std::endl;
-        time_c = time_cg+time_cp+time_cc+time_ce; // Not count std::clog
+        time_c = time_cg+time_cp+time_ce; // Not count std::clog
 #endif
 
 

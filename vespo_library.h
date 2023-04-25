@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <06 Mar 23 18:30:21 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <25 Apr 23 09:54:59 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -495,7 +495,7 @@ bool eval(paillier_plaintext_t& z, const client_t& client,
           double& time_c, double& time_s
 #ifdef VESPO_TIMINGS
           , double& time_e, double& time_p,
-          double& time_ce, double& time_cg, double& time_cp, double &time_cc
+          double& time_ce, double& time_cg, double& time_cp
 #endif
           );
 

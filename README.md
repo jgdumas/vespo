@@ -47,9 +47,26 @@
 	- Usage: `vespo_bench [Vector dimension] [Paillier bitsize] [Verification iterations] [tasks (default=threads)]`
 	- Example: `./vespo_bench 8192 2048 3`  
 
+**Results**
+- Parsed output
+	1. Degree: random polynomial degree
+	2. Setup: initialization time
+	3. CStore: client keys size
+	4. CTime: client database audit time
+	5. STime: server database audit time
+	6. UTime: client/server database update
+	7. HTime: reference Horner evaluation
 
+- Detailed Audit Benchmarks
+	1. zeta: encrypted evaluation by the server of P(r)
+	2. xi: proof by the server that the evaluation is correct
+	3. C-gsum: geometric sum checkpointing by the client
+	4. C-powm: pairings verification by the client 
+	5. C-H_dec: deciphering the evaluation by the client
+	6. horner: reference Horner evaluation
+	
 
 **References**:
 - VESPo: Verified Evaluation of Secret Polynomials.   
   J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche,   
-  [ArXiv 2110.02022](https://arxiv.org/abs/2110.02022)
+  PETS 2023: 23rd Privacy Enhancing Technologies Symposium, [ArXiv 2110.02022](https://arxiv.org/abs/2110.02022)

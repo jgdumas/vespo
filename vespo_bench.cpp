@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <07 Mar 23 09:44:30 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <25 Apr 23 09:55:50 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -115,7 +115,7 @@ int main(int argc, char * argv[]) {
     time_i = c_setup.stop();
 
 #ifdef VESPO_TIMINGS
-    std::vector<double> time_e(nb_iter), time_p(nb_iter), time_ce(nb_iter), time_cg(nb_iter), time_cp(nb_iter), time_cc(nb_iter);
+    std::vector<double> time_e(nb_iter), time_p(nb_iter), time_ce(nb_iter), time_cg(nb_iter), time_cp(nb_iter);
     std::clog << "[CLIENT STATE]: " << client.private_size(group_bits) << " bits" << std::endl;
 #endif
 
@@ -148,7 +148,7 @@ int main(int argc, char * argv[]) {
         bool pass = eval(z, client, server, r, nb_tasks, time_c[i], time_s[i]
 #ifdef VESPO_TIMINGS
                          , time_e[i], time_p[i]
-                         , time_ce[i], time_cg[i], time_cp[i], time_cc[i]
+                         , time_ce[i], time_cg[i], time_cp[i]
 #endif
                          );
 
@@ -190,9 +190,8 @@ int main(int argc, char * argv[]) {
     std::sort(time_ce.begin(),time_ce.end());
     std::sort(time_cg.begin(),time_cg.end());
     std::sort(time_cp.begin(),time_cp.end());
-    std::sort(time_cc.begin(),time_cc.end());
-    printf("[Eval DEVI] %lu | zeta : %f%% | xi : %f%% | C-powm : %f%% | C-gsum : %f%% | C-H_dec: %f%% | C-pairings : %f%%\n", degree+1, mediandeviation(time_e), mediandeviation(time_p), mediandeviation(time_ce), mediandeviation(time_cg), mediandeviation(time_cp), mediandeviation(time_cc));
-    printf("[Eval TIME] %lu | zeta : %f | xi : %f | C-powm : %f | C-gsum : %f | C-H_dec: %f | C-pairings : %f | pure-horner : %f\n", degree+1, time_e[nb_iter/2], time_p[nb_iter/2], time_ce[nb_iter/2], time_cg[nb_iter/2], time_cp[nb_iter/2], time_cc[nb_iter/2], time_eval);
+    printf("[Eval DEVI] %lu | zeta : %f%% | xi : %f%% | C-powm : %f%% | C-gsum : %f%% | C-H_dec: %f%%\n", degree+1, mediandeviation(time_e), mediandeviation(time_p), mediandeviation(time_ce), mediandeviation(time_cg), mediandeviation(time_cp));
+    printf("[Eval TIME] %lu | zeta : %f | xi : %f | C-powm : %f | C-gsum : %f | C-H_dec: %f | pure-horner : %f\n", degree+1, time_e[nb_iter/2], time_p[nb_iter/2], time_ce[nb_iter/2], time_cg[nb_iter/2], time_cp[nb_iter/2], time_eval);
 #endif
 
     printf("[DEVIATIO] | %lu %lu %lu | audit-client : %f%% | audit-server : %f%%\n", degree+1, group_bits, pailliersize, mediandeviation(time_c), mediandeviation(time_s));
