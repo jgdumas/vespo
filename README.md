@@ -52,10 +52,10 @@
 	1. ***Degree***: random polynomial degree
 	2. ***Setup***: initialization time
 	3. ***CStore***: client keys size
-	4. ***CTime***: client database audit time
-	5. ***STime***: server database audit time
-	6. ***UTime***: client/server database update
-	7. ***HTime***: reference Horner evaluation
+	4. ***CTime***: client verification time
+	5. ***STime***: server computation time
+	6. ***UTime***: client/server polynomial update time
+	7. ***HTime***: reference Horner evaluation time
 
 - Detailed Audit Benchmarks
 	1. ***zeta***: encrypted evaluation by the server of P(r)
@@ -63,7 +63,7 @@
 	3. ***C-gsum***: geometric sum checkpointing by the client
 	4. ***C-powm***: pairings verification by the client
 	5. ***C-H_dec***: deciphering the evaluation by the client
-	6. ***horner***: reference Horner evaluation
+	6. ***horner***: reference Horner evaluation time
 	
 
 **References**:
