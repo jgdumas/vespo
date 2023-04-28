@@ -1,9 +1,10 @@
 // ==========================================================================
 // VESPo: Verified Evaluation of Secret Polynomials
-// Reference: [ https://arxiv.org/abs/2110.02022
-//              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
+// Reference: [ PETS 2023: 23rd Privacy Enhancing Technologies Symposium
+//              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
+//              https://arxiv.org/abs/2110.02022 ]
 // Authors: J-G Dumas
-// Time-stamp: <25 Apr 23 09:54:59 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <28 Apr 23 10:00:52 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -34,6 +35,9 @@ extern "C" {
 }
 #endif
 
+/****************************************************************
+ * Debugging/bencmarking flags
+ ****************************************************************/
 #ifdef DEBUG
 # ifndef VESPO_CHECKERS
     // Automatic verification of subroutines
@@ -94,7 +98,7 @@ template<typename Vect> double mediandeviation(const Vect& v);
 
 
 /****************************************************************
- * relic bn_t utilities
+ * RELIC bn_t utilities
  ****************************************************************/
 
 #include <iostream>
@@ -250,7 +254,7 @@ void mat_geometric_sum(vector& c,
 
 
 /****************************************************************
- * Paillier utilities
+ * RELIC Paillier linear homomorphic encryption utilities
  ****************************************************************/
 typedef struct {
     shpe_t rlc;
@@ -369,7 +373,7 @@ struct server_t {
 
 
 //=====================================================================
-// VeSPo: checkers
+// VeSPo: checkers, only for debugging
 //=====================================================================
 
 #ifdef VESPO_CHECKERS
@@ -397,7 +401,7 @@ bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
 #endif
 
 //=====================================================================
-// VeSPo: masking
+// VeSPo: bidimensional masking of the polynomial
 //=====================================================================
 
     // <P1,P2> <-- sum X^i ( p_i valpha + msigma^i vbeta)
@@ -406,7 +410,7 @@ void vhide_poly(Polynomial<bn_t> & P1, Polynomial<bn_t>& P2,
                 const matrix& msigma, const Polynomial<bn_t> & P);
 
 //=====================================================================
-// VeSPo: Paillier
+// VeSPo: Paillier encryption of the polynomial
 //=====================================================================
 
     // Computes 1, r1, ..., r1^bigsdegree,
@@ -443,10 +447,12 @@ Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, const bn_t& s,
 
 
 //========================================================
-// VeSPo: homomorphic operations
+// VeSPo: Server homomorphic audit operations
 //========================================================
 
 	// Parallel simultaneous cipher/clear multiplication
+    // Multiplies simultaneously elements from G_1.
+    // Computes RES = \Sum_i=0..n k_iP_i.
 void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
                         const bn_t& mod, const int nbtasks);
 
@@ -473,21 +479,28 @@ void pairing_double(gt_t& xi_b, const int64_t length,
 
 
 //========================================================
-// VeSPo: Init protocol
+// VeSPo: Initialization protocol
+//        For a polynomial, sets Client keys & Server data
 //========================================================
 void setup(client_t& client, server_t& server,
            uint64_t pailliersize,
            const Polynomial<bn_t>& P, double& t_horner);
 
 //========================================================
-// VeSPo: Update protocol
+// VeSPo: Polynomial coefficient Update protocol
+//        Updates client/server states with modification:
+//        P_index <--- P_index + delta
 //========================================================
 bool update(client_t& client, server_t& server,
             Polynomial<bn_t>& P, const bn_t& delta, const size_t index,
             double& time_u);
 
 //========================================================
-// VeSPo: Audit protocol
+// VeSPo: Polynomial Audit protocol
+//        Server: evaluates the (encryped polynomial)
+//                provides a proof of correctness
+//        Client: verifies the proof
+//                deciphers the evaluation
 //========================================================
 bool eval(paillier_plaintext_t& z, const client_t& client,
           const server_t& server,
