@@ -27,7 +27,7 @@ LINFIL=/tmp/bench_range_vespo_P254.txt
 
 SIZLD=$((ENDLO - START + 1))
 PINIT=0
-if [ -e $file ]
+if [ -e ${LINFIL} ]
 then
   PINIT=`grep VAUDIT ${LINFIL} | grep OK | wc -l`
 fi

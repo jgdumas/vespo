@@ -29,7 +29,11 @@ SQFIL=bench_sq_vespo_P254.txt
 echo "##### VESPO PoR benchmarks"
 echo "##### 8 degrees from 5816 to 4026778"
 
-PREVIO=`grep VAUDIT ${SQFIL} 2> /dev/null | grep OK | wc -l`
+PSINIT=0
+if [ -e ${SQFIL} ]
+then
+  PSINIT=`grep VAUDIT ${SQFIL} | grep OK | wc -l`
+fi
 PASSED=0
 PERCEN=0
 TOTALT=$(( (4+4) * ITER))
@@ -41,10 +45,15 @@ do
     # Actual benchmark:
     OMP_NUM_THREADS=${NBTHREADS} ./vespo_bench ${DEGREE} ${SECU} ${ITER} &>> ${SQFIL}
     PASSED=`grep VAUDIT ${SQFIL} | grep OK | wc -l`
-    PERCEN=$(( (100 * (PASSED - PREVIO)) / TOTALT ))
+    PERCEN=$(( (100 * (PASSED - PSINIT)) / TOTALT ))
 done
 
 REFIL=bench_re_vespo_P254.txt
+PRINIT=0
+if [ -e ${REFIL} ]
+then
+  PRINIT=`grep VAUDIT ${REFIL} | grep OK | wc -l`
+fi
 
 for DEGREE in 5125 46551 426519 4026778
 do
@@ -54,7 +63,7 @@ do
     OMP_NUM_THREADS=${NBTHREADS} ./vespo_bench ${DEGREE} ${SECU} ${ITER} &>> ${REFIL}
 
     PASSED=`grep VAUDIT ${SQFIL} ${REFIL} | grep OK | wc -l`
-    PERCEN=$(( (100 * (PASSED - PREVIO)) / TOTALT ))
+    PERCEN=$(( (100 * (PASSED - PSINIT - PRINIT)) / TOTALT ))
 done
 
 echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m                                 \n"

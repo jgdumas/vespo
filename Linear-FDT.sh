@@ -40,7 +40,11 @@ LINFIL=bench_lin_vespo_P254.txt
 
 echo "##### VESPO linear benchmarks"
 echo "##### Doubling degrees from $((2**BEGLD)) to $((2**ENDLD))"
-PREVIO=`grep VAUDIT ${LINFIL} 2> /dev/null | grep OK | wc -l`
+PINIT=0
+if [ -e ${LINFIL} ]
+then
+  PINIT=`grep VAUDIT ${LINFIL} | grep OK | wc -l`
+fi
 PASSED=0
 PERCEN=0
 TOTALT=$((SIZLD * ITER))
@@ -54,6 +58,6 @@ do
   OMP_NUM_THREADS=${NBTHREADS} ./vespo_bench ${DEGREE} ${SECU} ${ITER} &>> ${LINFIL}
 
   PASSED=`grep VAUDIT ${LINFIL} | grep OK | wc -l`
-  PERCEN=$(( (100 * (PASSED - PREVIO)) / TOTALT ))
+  PERCEN=$(( (100 * (PASSED - PINIT)) / TOTALT ))
 done
 echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m                                 \n"
