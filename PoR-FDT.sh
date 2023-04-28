@@ -3,23 +3,33 @@
 #####################################################
 ### VESPo benchmarks for PoR on 1GB, 10GB, 100GB, 1TB
 ### Copyright(c) 2023 Jean-Guillaume Dumas
+### usage: PoR-FDT.sh [threads] [iterations]
 #####################################################
 
 
+# Number of threads
 if [ $# -lt 1 ]; then
       NBTHREADS=32
 else
       NBTHREADS=$1
 fi
 
+# Number of iterations
+if [ $# -lt 3 ]; then
+      ITER=3
+else
+      ITER=$3
+fi
+
+# Paillier security
 SECU=2048
-ITER=3
 
 SQFIL=bench_sq_vespo_P254.txt
 
 echo "##### VESPO PoR benchmarks"
 echo "##### 8 degrees from 5816 to 4026778"
 
+PREVIO=`grep VAUDIT ${SQFIL} | grep OK | wc -l`
 PASSED=0
 PERCEN=0
 TOTALT=$(( (4+4) * ITER))
@@ -31,7 +41,7 @@ do
     # Actual benchmark:
     OMP_NUM_THREADS=${NBTHREADS} ./vespo_bench ${DEGREE} ${SECU} ${ITER} &>> ${SQFIL}
     PASSED=`grep VAUDIT ${SQFIL} | grep OK | wc -l`
-    PERCEN=$(( (100 * PASSED) / TOTALT ))
+    PERCEN=$(( (100 * (PASSED - PREVIO)) / TOTALT ))
 done
 
 REFIL=bench_re_vespo_P254.txt
@@ -44,7 +54,7 @@ do
     OMP_NUM_THREADS=${NBTHREADS} ./vespo_bench ${DEGREE} ${SECU} ${ITER} &>> ${REFIL}
 
     PASSED=`grep VAUDIT ${SQFIL} ${REFIL} | grep OK | wc -l`
-    PERCEN=$(( (100 * PASSED) / TOTALT ))
+    PERCEN=$(( (100 * (PASSED - PREVIO)) / TOTALT ))
 done
 
 echo -ne "##### Passed: \e[32m${PERCEN}%\e[0m                                 \n"
