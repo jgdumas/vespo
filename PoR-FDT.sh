@@ -29,7 +29,7 @@ SQFIL=bench_sq_vespo_P254.txt
 echo "##### VESPO PoR benchmarks"
 echo "##### 8 degrees from 5816 to 4026778"
 
-PREVIO=`grep VAUDIT ${SQFIL} | grep OK | wc -l`
+PREVIO=`grep VAUDIT ${SQFIL} 2> /dev/null | grep OK | wc -l`
 PASSED=0
 PERCEN=0
 TOTALT=$(( (4+4) * ITER))

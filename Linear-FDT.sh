@@ -40,7 +40,7 @@ LINFIL=bench_lin_vespo_P254.txt
 
 echo "##### VESPO linear benchmarks"
 echo "##### Doubling degrees from $((2**BEGLD)) to $((2**ENDLD))"
-PREVIO=`grep VAUDIT ${LINFIL} | grep OK | wc -l`
+PREVIO=`grep VAUDIT ${LINFIL} 2> /dev/null | grep OK | wc -l`
 PASSED=0
 PERCEN=0
 TOTALT=$((SIZLD * ITER))
