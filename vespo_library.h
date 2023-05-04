@@ -4,7 +4,7 @@
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
 //              https://arxiv.org/abs/2110.02022 ]
 // Authors: J-G Dumas
-// Time-stamp: <04 May 23 13:35:19 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <04 May 23 13:37:00 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -340,16 +340,16 @@ void random_precompute(Polynomial<bn_t>& reusedrands,
 
 struct client_t {
     g1_t g1;				// Pairing: g1 x g2 --> e_T
-    g2_t g2;				// 		g1, g2, res. left and right group
-    gt_t e_T;				// 		e_T destination group
+    g2_t g2;				//     g1, g2, res. left and right group
+    gt_t e_T;				//     e_T destination group
 
     int64_t d;				// Polynomial degree
     paillier_pubkey_t pub;	// Paillier keys
-    paillier_prvkey_t prv;	// 		public/private
-    bn_t s;					// Secret point
+    paillier_prvkey_t prv;	//     public/private
+    bn_t s;                 // Secret point
     gt_t K1_bT, K2_bT;		// Public keys
     vector valpha, vbeta;	// Secret 2x1 vectors for DLM assumption
-    matrix msigma;			// Secret 2x2 matrix for geo. sum verif.
+    matrix msigma;          // Secret 2x2 matrix for geo. sum verif.
 
     client_t(const int64_t degree);
 
@@ -364,10 +364,10 @@ struct client_t {
 struct server_t {
     paillier_pubkey_t pub;			// Paillier public key
         // Enciphered Polynomial, cut into 'blocks' chunks
-        // 		last ones of size [ (degree+1)/Blocks ]
-        // 		first ones of that size + 1
-        // 		so that sum of sizes is 'degree+1'
-        // W is the vector of this blocks
+        //     last ones of size [ (degree+1)/Blocks ]
+        //     first ones of that size + 1
+        //     so that sum of sizes is 'degree+1'
+        //     W is the vector of these blocks
     std::vector<Polynomial<paillier_ciphertext_t>> W;
     int64_t bigblocks;				// number of first blocks
     Polynomial<g2_t> H1_b, H2_b;	// Same degree checkpointing polynomials
