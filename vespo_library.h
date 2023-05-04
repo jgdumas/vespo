@@ -4,7 +4,7 @@
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
 //              https://arxiv.org/abs/2110.02022 ]
 // Authors: J-G Dumas
-// Time-stamp: <28 Apr 23 10:00:52 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <04 May 23 13:35:19 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -282,7 +282,7 @@ struct paillier_ciphertext_t {
     ~paillier_ciphertext_t() { bn_free(c); }
 };
 
-	// a*b mod kpub.nsq
+    // a*b mod kpub.nsq
 int paillier_mul(paillier_ciphertext_t& res,
                  const paillier_ciphertext_t& a,
                  const paillier_ciphertext_t& b,
@@ -339,17 +339,17 @@ void random_precompute(Polynomial<bn_t>& reusedrands,
 //=====================================================================
 
 struct client_t {
-    g1_t g1;
-    g2_t g2;
-    gt_t e_T;
+    g1_t g1;				// Pairing: g1 x g2 --> e_T
+    g2_t g2;				// 		g1, g2, res. left and right group
+    gt_t e_T;				// 		e_T destination group
 
-    int64_t d;
-    paillier_pubkey_t pub;
-    paillier_prvkey_t prv;
-    bn_t s;
-    gt_t K1_bT, K2_bT;
-    vector valpha, vbeta;
-    matrix msigma;
+    int64_t d;				// Polynomial degree
+    paillier_pubkey_t pub;	// Paillier keys
+    paillier_prvkey_t prv;	// 		public/private
+    bn_t s;					// Secret point
+    gt_t K1_bT, K2_bT;		// Public keys
+    vector valpha, vbeta;	// Secret 2x1 vectors for DLM assumption
+    matrix msigma;			// Secret 2x2 matrix for geo. sum verif.
 
     client_t(const int64_t degree);
 
@@ -362,11 +362,16 @@ struct client_t {
 };
 
 struct server_t {
-    paillier_pubkey_t pub;
+    paillier_pubkey_t pub;			// Paillier public key
+        // Enciphered Polynomial, cut into 'blocks' chunks
+        // 		last ones of size [ (degree+1)/Blocks ]
+        // 		first ones of that size + 1
+        // 		so that sum of sizes is 'degree+1'
+        // W is the vector of this blocks
     std::vector<Polynomial<paillier_ciphertext_t>> W;
-    Polynomial<g2_t> H1_b, H2_b;
-    Polynomial<g1_t> S;
-    int64_t bigblocks;
+    int64_t bigblocks;				// number of first blocks
+    Polynomial<g2_t> H1_b, H2_b;	// Same degree checkpointing polynomials
+    Polynomial<g1_t> S;				// Same degree verification polynomial
     server_t(const int64_t degree, const int64_t blocks, const bn_t& modulus);
     ~server_t() {}
 };
@@ -420,7 +425,7 @@ void geo_progression(Polynomial<bn_t>& pows_r,
                      const int64_t totaldegree, const bn_t& r2,
                      const bn_t& mod, double& time_r);
 
-	// Paillier homomorphic dot-product
+    // Paillier homomorphic dot-product
 void paillier_hom_dp(paillier_ciphertext_t& eval,
                      const paillier_pubkey_t& kpub,
                      const Polynomial<paillier_ciphertext_t>& Wi,
@@ -450,7 +455,7 @@ Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, const bn_t& s,
 // VeSPo: Server homomorphic audit operations
 //========================================================
 
-	// Parallel simultaneous cipher/clear multiplication
+    // Parallel simultaneous cipher/clear multiplication
     // Multiplies simultaneously elements from G_1.
     // Computes RES = \Sum_i=0..n k_iP_i.
 void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
@@ -468,7 +473,7 @@ void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
                         const Polynomial<bn_t>& revpow, const int64_t step,
                         const bn_t& mod, const int64_t nbtasks);
 
-	// Simultaneous pairing computation (and final accumulation)
+    // Simultaneous pairing computation (and final accumulation)
 void pairing_sim(gt_t& xi_b, const g1_t* H, const g2_t* T, const int64_t deg);
 
     // Server xi computation
