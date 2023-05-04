@@ -4,7 +4,7 @@
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
 //              https://arxiv.org/abs/2110.02022 ]
 // Authors: J-G Dumas
-// Time-stamp: <04 May 23 13:38:52 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <04 May 23 13:40:37 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -313,22 +313,22 @@ void random_precompute(Polynomial<bn_t>& reusedrands,
 #  define PAILLIER_PRECOMPU(pub,prv,psize)
 #  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii) cp_shpe_enc_prv((res).c,mes,prv)
 #else
-#  define PAILLIER_PRECOMPU(pub,prv,psize)									\
-	 const size_t paillierands(std::min((int64_t)VESPO_NOTSECURE,psize));	\
-	 Polynomial<bn_t> reusedrands(paillierands-1,pub.nsq);					\
-	 random_precompute(reusedrands,pub,prv,psize);
+#  define PAILLIER_PRECOMPU(pub,prv,psize)                               \
+     const size_t paillierands(std::min((int64_t)VESPO_NOTSECURE,psize));\
+     Polynomial<bn_t> reusedrands(paillierands-1,pub.nsq);               \
+     random_precompute(reusedrands,pub,prv,psize);
 
 // Compute directly (1+ mes * N) mod N^2
 // Instead of (1+N)^m mod N^2  (would be: bn_mxp(res.c, g, mes, pub->nsq);)
 // Therefore almost no exponentiations at setup
-#  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii)				\
-     bn_mul(res.c, prv->crt->n, mes);						\
-     bn_mod(res.c, res.c, pub.nsq);							\
-     bn_mul(res.c, res.c, prv->b);							\
-     bn_add_dig(res.c, res.c, 1);							\
-     bn_mod(res.c, res.c, pub.nsq);							\
-	 bn_mul(res.c, res.c, reusedrands[ii % VESPO_NOTSECURE]);\
-	 bn_mod(res.c, res.c, pub.nsq);
+#  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii)              \
+     bn_mul(res.c, prv->crt->n, mes);                        \
+     bn_mod(res.c, res.c, pub.nsq);                          \
+     bn_mul(res.c, res.c, prv->b);                           \
+     bn_add_dig(res.c, res.c, 1);                            \
+     bn_mod(res.c, res.c, pub.nsq);                          \
+     bn_mul(res.c, res.c, reusedrands[ii % VESPO_NOTSECURE]);\
+     bn_mod(res.c, res.c, pub.nsq);
 
 #endif
 //=====================================================================
