@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <25 Apr 23 09:54:52 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <15 May 23 11:13:48 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -1434,22 +1434,22 @@ inline void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
 
 #define VESPO_PC_MAP_SIM pc_map_sim
 
-inline void pairing_sim(gt_t& xi_b, const g1_t* H, const g2_t* T, const int64_t deg) {
+inline void pairing_sim(gt_t& xi_b, const g1_t* Ti, const g2_t* Hi, const int64_t deg) {
 #ifdef DEBUG
     std::clog << "[PairiSim] BEG: d°" << deg << std::endl;
 #endif
     gt_set_unity(xi_b);
     if (deg <= VESPO_RELIC_LIMIT_MAX_ALLOC) {
-        VESPO_PC_MAP_SIM(xi_b, H, T, deg);
+        VESPO_PC_MAP_SIM(xi_b, Ti, Hi, deg);
     } else {
         const size_t endlcm = ( (deg-1)/VESPO_RELIC_LIMIT_MAX_ALLOC)*VESPO_RELIC_LIMIT_MAX_ALLOC;
         gt_t txi_b; gt_new(txi_b);
 
         size_t i=0; for( ; i<endlcm; i+=VESPO_RELIC_LIMIT_MAX_ALLOC) {
-            VESPO_PC_MAP_SIM(txi_b, &(H[i]), &(T[i]), VESPO_RELIC_LIMIT_MAX_ALLOC);
+            VESPO_PC_MAP_SIM(txi_b, &(Ti[i]), &(Hi[i]), VESPO_RELIC_LIMIT_MAX_ALLOC);
             gt_mul(xi_b, xi_b, txi_b);
         }
-        VESPO_PC_MAP_SIM(txi_b, &(H[i]), &(T[i]), deg-endlcm);
+        VESPO_PC_MAP_SIM(txi_b, &(Ti[i]), &(Hi[i]), deg-endlcm);
         gt_mul(xi_b, xi_b, txi_b);
 
         gt_free(txi_b);
@@ -1461,7 +1461,7 @@ inline void pairing_sim(gt_t& xi_b, const g1_t* H, const g2_t* T, const int64_t 
 
 inline void pairing_double(gt_t& xi_b, const int64_t length,
                     const int64_t nbblocks, const bn_t& mod,
-                    const Polynomial<g1_t>& H, const Polynomial<g2_t>& Ti) {
+                    const Polynomial<g1_t>& Ti, const Polynomial<g2_t>& Hi) {
         // Server xi computation
         //   second step: applying the pairing maps as a dotproduct
 #ifdef VESPO_CHECKERS
@@ -1476,18 +1476,18 @@ inline void pairing_double(gt_t& xi_b, const int64_t length,
         dnbblocks = (int64_t)(std::ceil((double)length/(double(sizeloop))));
 
         Polynomial<gt_t> Txi(dnbblocks-1,mod);
-#pragma omp parallel for shared(Txi,H,Ti)
+#pragma omp parallel for shared(Txi,Ti,Hi)
         for(int64_t i=0; i<dnbblocks; ++i) {
             const int64_t ipp(i*sizeloop);
-            pairing_sim(Txi[i], &(H[ipp]), &(Ti[ipp]),
+            pairing_sim(Txi[i], &(Ti[ipp]), &(Hi[ipp]),
                         std::min(static_cast<int64_t>(sizeloop), length-ipp));
         }
 
-        gt_set_unity(xi_b);
-        for(int64_t i=0; i<dnbblocks; ++i)
+        gt_copy(xi_b, Txi[0]);
+        for(int64_t i=1; i<dnbblocks; ++i)
             gt_mul(xi_b, xi_b, Txi[i]);
     }
-//     pairing_sim(xi_b, &(H[0]), &(Ti[0]), length);
+//     pairing_sim(xi_b, &(Ti[0]), &(Hi[0]), length);
 
 #ifdef VESPO_SUB_TIMINGS
     std::clog << "    Pairings prods.: " << c_cho.stop() << " (" << length << " operations)" << std::endl;
