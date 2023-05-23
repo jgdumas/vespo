@@ -9,16 +9,16 @@
 
 # Number of threads
 if [ $# -lt 1 ]; then
-      NBTHREADS=32
+      NBTHREADS=8
 else
       NBTHREADS=$1
 fi
 
 # Number of iterations
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
       ITER=3
 else
-      ITER=$3
+      ITER=$2
 fi
 
 # Paillier security

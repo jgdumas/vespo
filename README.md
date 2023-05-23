@@ -38,8 +38,8 @@
 
 **Benchmarking only**: `cd vespo`
 - Automatic (two different range of benchmarks)
-	1. run `./Linear-FDT.sh [numthreads (default=32)]` (Ref. Table 7).
-	2. run `./PoR-FDT.sh [numthreads (default=32)]` (Ref. Tables 10 & 13).
+	1. run `./Linear-FDT.sh [numthreads (default=8)] [max logdeg (12)] [iterations (3)]` (Ref. Table 7).
+	2. run `./PoR-FDT.sh [numthreads (default=8)] [iterations (3)]` (Ref. Tables 10 & 13).
 	3. Parse outputs via `./parse_bench.sh bench_*`.
 
 - By hand

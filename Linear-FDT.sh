@@ -9,7 +9,7 @@
 
 # Number of threads
 if [ $# -lt 1 ]; then
-      NBTHREADS=32
+      NBTHREADS=8
 else
       NBTHREADS=$1
 fi
