@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <25 Apr 23 09:55:50 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <12 Jun 23 10:00:47 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -28,7 +28,7 @@ int main(int argc, char * argv[]) {
         //argv[3]: number of experiments
         //argv[4]: number of parallel tasks (default is number of threads)
 
-    if (argc < 3) {
+    if (argc < 1) {
         std::cerr << "Usage: " << argv[0] << " <Vector dimension> <Paillier bitsize> <Verification iterations> [tasks (default=threads)]" << std::endl;
         return 1;
     }
@@ -44,10 +44,14 @@ int main(int argc, char * argv[]) {
     }
 #endif
 
-    const int64_t degree = std::max(0,atoi(argv[1]) - 1);	// Polynomial degree
-    const uint64_t pailliersize = atoi(argv[2]);// Paillier bitsize
-    const uint64_t nb_iter = atoi(argv[3]);		// Verification iterations
-    const int nb_tasks = (argc>4?atoi(argv[4]):std::min(numthreads,degree+1));	// tasks
+		// Polynomial degree
+    const int64_t degree = std::max(0,atoi(argv[1]) - 1);
+        // Paillier bitsize
+    const uint64_t pailliersize = (argc>2?atoi(argv[2]):2048);
+		// Verification iterations
+    const uint64_t nb_iter = (argc>3?atoi(argv[3]):3);
+        // tasks
+    const int nb_tasks = (argc>4?atoi(argv[4]):std::min(numthreads,degree+1));
 
         /********************************************************************
          * RELIC SETUP
@@ -107,7 +111,7 @@ int main(int argc, char * argv[]) {
     Chrono c_setup; c_setup.start();
 
     client_t client(degree);
-        // For now 2 threads for xi1 and x2 the rest (at least 2) for Paillier
+        // For now 2 threads for xi1 and xi2 the rest (at least 2) for Paillier
     server_t server(degree, std::max(2,nb_tasks), group_mod);
 
     setup(client, server, pailliersize, P, time_eval);
