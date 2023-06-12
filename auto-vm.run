@@ -6,7 +6,7 @@
 #####################################################
 ### Requirements: we suppose an existing environment,
 ###           with git, cmake, c++, OpenMP, GMP, etc.
-### For instance via a vritual machine,
+### For instance via a virtual machine,
 ###     e.g., using vagrant with libvirt, and debian:
 # > vagrant init debian/bullseye64
 # > vagrant up --provider=libvirt

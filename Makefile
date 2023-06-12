@@ -33,5 +33,8 @@ CXXFLAGS += ${OPTFLAGS} ${VARFLAGS} ${INCLUDES}
 LDFLAGS += ${LIBFLAGS}
 LOADLIBES += ${LOADINGLIBS}
 
+# Prevents the stack to be executable
+LDFLAGS += -z noexecstack
+
 ${EXE}: ${SRC} ${DEP}
 	$(LINK.cpp) $< $(LOADLIBES) $(LDLIBS) -o $@
