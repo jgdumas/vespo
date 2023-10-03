@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <15 May 23 11:13:48 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <03 Oct 23 18:37:15 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -625,10 +625,10 @@ inline void client_t::keygen(uint64_t pailliersize) {
         bn_sqr(pub.nsq, pub.rlc->crt->n); // store n^2 too
 }
 
-inline server_t::server_t(const int64_t degree, const int64_t blocks,
-                          const bn_t& modulus) :
-        H1_b(degree-1,modulus), H2_b(degree-1,modulus),
-        S(degree, modulus) {
+
+inline int64_t setup_block_chunks(
+    std::vector<Polynomial<paillier_ciphertext_t>>& W,
+    const int64_t degree, const int64_t blocks, const bn_t& modulus) {
         // Cut W into 'blocks' chunks
         // last ones of size [ (degree+1)/Blocks ]
         // first ones of that size + 1
@@ -636,7 +636,7 @@ inline server_t::server_t(const int64_t degree, const int64_t blocks,
     int64_t sW(degree+1);
     W.reserve(blocks);
     int64_t sdeg(sW/blocks);
-    bigblocks = (sW-sdeg*blocks);
+    int64_t bigblocks = (sW-sdeg*blocks);
     const int64_t ldeg(sdeg); --sdeg;
     int64_t i=0; for(; i<bigblocks;++i) {
         W.emplace_back(ldeg, modulus);
@@ -646,6 +646,21 @@ inline server_t::server_t(const int64_t degree, const int64_t blocks,
     }
         // If no bigblocks, actually all are of same (big) size
     if (bigblocks == 0) bigblocks=blocks;
+    return bigblocks;
+}
+
+
+
+inline server_t::server_t(const int64_t degree, const int64_t blocks,
+                          const bn_t& modulus) :
+        H1_b(degree-1,modulus), H2_b(degree-1,modulus),
+        S(degree, modulus) {
+        // For parallelism:
+        //	Cut W into 'blocks' chunks
+        //	last ones of size [ (degree+1)/Blocks ]
+        //	first ones of that size + 1
+        //	so that sum of sizes is 'degree+1'
+    this->bigblocks=setup_block_chunks(this->W, degree, blocks, modulus);
 }
 
 
@@ -1248,7 +1263,8 @@ inline bool update(client_t& client, server_t& server,
 
         // Server updates
         // Server update (1): W[index] <- W[index] * delta
-    size_t jloc(0), kloc(index);
+    size_t jloc(0);
+    int64_t kloc(index);
     for(; jloc<server.W.size() && kloc>server.W[jloc].degree(); ++jloc) {
         kloc -= (server.W[jloc].degree()+1);
     }

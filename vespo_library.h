@@ -4,7 +4,7 @@
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
 //              https://arxiv.org/abs/2110.02022 ]
 // Authors: J-G Dumas
-// Time-stamp: <04 May 23 13:40:37 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <03 Oct 23 18:37:21 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -376,6 +376,14 @@ struct server_t {
     ~server_t() {}
 };
 
+
+    // Cut W into 'blocks' chunks
+    // last ones of size [ (degree+1)/Blocks ]
+    // first ones of that size + 1
+    // so that sum of sizes is 'degree+1'
+int64_t setup_block_chunks(
+    std::vector<Polynomial<paillier_ciphertext_t>>& W,
+    const int64_t degree, const int64_t blocks, const bn_t& modulus);
 
 //=====================================================================
 // VeSPo: checkers, only for debugging
