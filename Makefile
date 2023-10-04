@@ -1,5 +1,5 @@
 # Location of the RELIC library
-LIBS_DIR=/usr/local/soft/relic-0.6.0
+LIBS_DIR=/usr/local/soft/relic-0.7.0
 
 # Used Libraries
 LIBS_NAME=relic_s gmp rt

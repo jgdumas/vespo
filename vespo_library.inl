@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <03 Oct 23 18:37:15 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <04 Oct 23 09:54:10 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -578,9 +578,8 @@ inline client_t::client_t(const int64_t degree) : d(degree) {
     g1_null(this->g1);g1_new(this->g1);
     g2_null(this->g2);g2_new(this->g2);
     gt_null(this->e_T);gt_new(this->e_T);
-    bn_null(this->pub.nsq); bn_new(this->pub.nsq);
-    shpe_null( this->pub.rlc ); shpe_new( this->pub.rlc );
-    shpe_null( this->prv ); shpe_new( this->prv );
+    paillier_newprvkey(this->prv);
+    paillier_newpubkey(this->pub);
     bn_null(this->s);bn_new(this->s);
     gt_null(this->K1_bT);gt_new(this->K1_bT);
     gt_null(this->K2_bT);gt_new(this->K2_bT);
@@ -1529,8 +1528,6 @@ inline bool eval(paillier_plaintext_t& z, const client_t& client,
 
 #ifdef VESPO_TIMINGS
     std::clog << "[Audit " << r << "] BEG" << std::endl;
-#else
-    double time_e(0.0), time_p(0.0);
 #endif
     const int64_t nbblocks(server.W.size());
     const int64_t dblocks(nbblocks-1);

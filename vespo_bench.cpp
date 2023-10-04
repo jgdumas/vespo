@@ -3,7 +3,7 @@
 // Reference: [ https://arxiv.org/abs/2110.02022
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche ]
 // Authors: J-G Dumas
-// Time-stamp: <12 Jun 23 10:00:47 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <04 Oct 23 09:40:05 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -88,13 +88,15 @@ int main(int argc, char * argv[]) {
     std::clog << "  REUSEDPRD: " << VESPO_NOTSECURE << std::endl;
 #endif
 
-    std::vector<double> time_c(nb_iter), time_s(nb_iter), time_u((nb_iter*(nb_iter+1))/2);
-    double time_i=0., time_eval=0.;
-
         /********************************************************************
          * VESPo: group order
          *******************************************************************/
     bn_t group_mod; bn_null(group_mod); bn_new(group_mod); pc_get_ord(group_mod);
+	std::clog << "  MOD BITS : " << bn_bits(group_mod) << std::endl;
+	std::clog << "  PAIL SIZE: " << pailliersize << std::endl;
+
+    std::vector<double> time_c(nb_iter), time_s(nb_iter), time_u((nb_iter*(nb_iter+1))/2);
+    double time_i=0., time_eval=0.;
 
         /********************************************************************
          * VESPo: Benchmarking with a random polynomial

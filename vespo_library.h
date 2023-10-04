@@ -4,7 +4,7 @@
 //              J-G. Dumas, A. Maignan, C. Pernet, D. S. Roche
 //              https://arxiv.org/abs/2110.02022 ]
 // Authors: J-G Dumas
-// Time-stamp: <03 Oct 23 18:37:21 Jean-Guillaume.Dumas@imag.fr>
+// Time-stamp: <04 Oct 23 09:55:00 Jean-Guillaume.Dumas@imag.fr>
 // ==========================================================================
 
 /****************************************************************
@@ -262,6 +262,9 @@ typedef struct {
 } paillier_pubkey_t;
 
 #define paillier_prvkey_t shpe_t
+
+#define paillier_newprvkey(a) { shpe_null(a); shpe_new(a); }
+#define paillier_newpubkey(a) { bn_null((a).nsq); bn_new((a).nsq); shpe_null((a).rlc); shpe_new((a).rlc); }
 
 #define paillier_freeprvkey(a) { shpe_free(a); }
 #define paillier_freepubkey(a) { shpe_free((a).rlc); bn_free((a).nsq); }
