@@ -20,7 +20,7 @@ VARFLAGS  = ${PARFLAGS} ${SECFLAGS} ${TIMFLAGS}
 VARFLAGS += ${LIMFLAGS} # ${CHKFLAGS} ${DBGFLAGS}
 
 # Benchmaring executable
-EXE=vespo_bench
+EXE=ciphered_poly_evals_bench vespo_bench
 SRC=${EXE:%=%.cpp}
 DEP=vespo_library.h vespo_library.inl
 
