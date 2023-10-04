@@ -8,13 +8,16 @@ LIBS_NAME=relic_s gmp rt
 OPTFLAGS += -Ofast -march=native
 
 # Comment/Uncomment compilation variants
-VARFLAGS += -DVESPO_SUB_TIMINGS 		# detailed timings
-VARFLAGS += -DCLOCKTYPE=CLOCK_REALTIME -fopenmp	# using the parallel version
-VARFLAGS += -DVESPO_RELIC_LIMIT_MAX_ALLOC=4096	# limiting RELIC allocation
-VARFLAGS += -DVESPO_NOTSECURE=100		# only not benchmarking setup
-#VARFLAGS += -DVESPO_CHECKERS			# Debug: adding checkers
-#VARFLAGS += -DDEBUG					# Debug: general logs
+TIMFLAGS = -DVESPO_SUB_TIMINGS                  # detailed timings
+PARFLAGS = -DCLOCKTYPE=CLOCK_REALTIME -fopenmp  # using the parallel version
+LIMFLAGS = -DVESPO_RELIC_LIMIT_MAX_ALLOC=4096   # limiting RELIC allocation
+SECFLAGS = -DVESPO_NOTSECURE=100                # only not benchmarking setup
+CHKFLAGS += -DVESPO_CHECKERS                    # Debug: adding checkers
+DBGFLAGS += -DDEBUG                             # Debug: general logs
 
+# Get all compilation variants
+VARFLAGS  = ${PARFLAGS} ${SECFLAGS} ${TIMFLAGS}
+VARFLAGS += ${LIMFLAGS} # ${CHKFLAGS} ${DBGFLAGS}
 
 # Benchmaring executable
 EXE=vespo_bench
