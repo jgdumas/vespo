@@ -76,7 +76,7 @@ extern "C" {
 // #    define CLOCKTYPE  CLOCK_REALTIME
 #  else
     /* this one should be appropriate to
-               avoid errors on multiprocessors systems */
+	       avoid errors on multiprocessors systems */
 #    define CLOCKTYPE  CLOCK_MONOTONIC
 #  endif
 #endif
@@ -87,9 +87,9 @@ struct Chrono {
     struct timespec begin_time,end_time;
     void start() { clock_gettime(CLOCKTYPE, &begin_time); }
     double stop() {
-        clock_gettime(CLOCKTYPE, &end_time);
-        double ttime(difftime(end_time.tv_sec, begin_time.tv_sec));
-        return ttime += ((double) (end_time.tv_nsec - begin_time.tv_nsec) )/ VESPO_NANO_FACTOR;
+	clock_gettime(CLOCKTYPE, &end_time);
+	double ttime(difftime(end_time.tv_sec, begin_time.tv_sec));
+	return ttime += ((double) (end_time.tv_nsec - begin_time.tv_nsec) )/ VESPO_NANO_FACTOR;
     }
 };
 
@@ -195,27 +195,27 @@ struct matrix {
     // --> t0^2 + 2t0t1 X + t1^2 ( -p0 -p1 X)
     // --> (t0^2 -p0t1^2) + (2t0t1 -p1t1^2) X
 void sqr_modcharp(bn_t& s0, bn_t& s1,
-                  const bn_t& p0, const bn_t& p1,
-                  const bn_t& t0, const bn_t& t1,
-                  const bn_t& mod);
+		  const bn_t& p0, const bn_t& p1,
+		  const bn_t& t0, const bn_t& t1,
+		  const bn_t& mod);
 
 
     // (s0 + s1 X) X mod p0 + p1 X + X^2
     // --> s0 X + s1 (-p0 -p1 X)
     // --> (-p0 s1) + (s0 - s1p1) X
 void mulinx_modcharp(bn_t& s0, bn_t& s1,
-                     const bn_t& p0, const bn_t& p1,
-                     const bn_t& mod);
+		     const bn_t& p0, const bn_t& p1,
+		     const bn_t& mod);
 
     // Computes s0+s1Z=Z^d modulo P(X)=p0+p1Z+Z^2
 void TMMP(bn_t& s0, bn_t& s1,
-          const bn_t& p0, const bn_t& p1,
-          const int64_t d, const bn_t& mod);
+	  const bn_t& p0, const bn_t& p1,
+	  const int64_t d, const bn_t& mod);
 
     // Determinant of <<a|b>,<c|d>>
 void moddet(bn_t& det,
-            const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
-            const bn_t& mod);
+	    const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
+	    const bn_t& mod);
 
 void moddet(bn_t& det, const matrix& m, const bn_t& mod) {
     return moddet(det,m.a,m.b,m.c,m.d,mod);
@@ -225,14 +225,14 @@ void moddet(bn_t& det, const matrix& m, const bn_t& mod) {
     // Characteristic polynomial of <<a|b>,<c|d>>
     // (ad-bc) - (a+d) X + X^2
 void modcharpoly(bn_t& p0, bn_t& p1,
-                 const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
-                 const bn_t& mod);
+		 const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
+		 const bn_t& mod);
 
     // <u0,u1> <-- <<a|b>,<c|d>> . <v0,v1>
 void matvectmod(bn_t& u0, bn_t& u1,
-                const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
-                const bn_t& v0, const bn_t& v1,
-                const bn_t& mod);
+		const bn_t& a, const bn_t& b, const bn_t& c, const bn_t& d,
+		const bn_t& v0, const bn_t& v1,
+		const bn_t& mod);
 
 void matvectmod(vector& u, const matrix& m, const vector& v, const bn_t& mod) {
     matvectmod(u.first, u.second, m.a, m.b, m.c, m.d, v.first, v.second, mod);
@@ -242,15 +242,15 @@ void matvectmod(vector& u, const matrix& m, const vector& v, const bn_t& mod) {
     // Projected matrix geometric sum
     // u <-- sum_{i=0}^k M^i . v
 void PMGS(vector& u, const matrix& M,
-          const uint64_t k,
-          const vector& v, const bn_t& mod);
+	  const uint64_t k,
+	  const vector& v, const bn_t& mod);
 
     // Projected matrix geometric sum
     // c <-- sum_{i=0}^k (rA)^i . b
 void mat_geometric_sum(vector& c,
-                       const bn_t& r, const matrix& A, const uint64_t k,
-                       const vector& b,
-                       const bn_t& mod);
+		       const bn_t& r, const matrix& A, const uint64_t k,
+		       const vector& b,
+		       const bn_t& mod);
 
 
 /****************************************************************
@@ -287,9 +287,9 @@ struct paillier_ciphertext_t {
 
     // a*b mod kpub.nsq
 int paillier_mul(paillier_ciphertext_t& res,
-                 const paillier_ciphertext_t& a,
-                 const paillier_ciphertext_t& b,
-                 const paillier_pubkey_t& kpub);
+		 const paillier_ciphertext_t& a,
+		 const paillier_ciphertext_t& b,
+		 const paillier_pubkey_t& kpub);
 
 /****************************************************************
  * Paillier generation
@@ -304,34 +304,55 @@ int paillier_mul(paillier_ciphertext_t& res,
 //=====================================================================
 // #define VESPO_NOTSECURE 100
 
-void random_precompute(Polynomial<bn_t>& reusedrands,
-                       const paillier_pubkey_t& pub,
-                       const paillier_prvkey_t& prv,
-                       const int64_t psize);
-
-
 #define PAILLIER_DECIPHER(res,pub,prv,cip) cp_shpe_dec((res).m,(cip).c,prv)
+#define PAILLIER_PRECIPHER(res,mes,rnd,pub,prv)	\
+     bn_mul(res.c, prv->crt->n, mes);           \
+     bn_mod(res.c, res.c, pub.nsq);             \
+     bn_mul(res.c, res.c, prv->b);              \
+     bn_add_dig(res.c, res.c, 1);               \
+     bn_mod(res.c, res.c, pub.nsq);             \
+     bn_mul(res.c, res.c, rnd);			\
+     bn_mod(res.c, res.c, pub.nsq);
+
+
+void random_precompute(Polynomial<bn_t>& reusedrands,
+		       const paillier_pubkey_t& pub,
+		       const paillier_prvkey_t& prv,
+		       const int64_t psize);
+
+    // Default sliding window table level (Total: 2^lvl * bits(mod) storage)
+#define VESPO_PWRTABLVL 5
+std::vector<Polynomial<bn_t>> bn_mxp_pwrtables(const bn_t base, const bn_t& mod,
+					       const size_t levelWG=VESPO_PWRTABLVL);
+void bn_mxp_prepwr(bn_t r, const bn_t m, const bn_t e, const bn_t n,
+		   const std::vector<Polynomial<bn_t>>& W,
+		   const size_t lvl=VESPO_PWRTABLVL);
+
 
 #ifndef VESPO_NOTSECURE
-#  define PAILLIER_PRECOMPU(pub,prv,psize)
-#  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii) cp_shpe_enc_prv((res).c,mes,prv)
+
+#  define PAILLIER_PRECOMPU(pub,prv,psize)                      \
+    auto MXPTBLS(bn_mxp_pwrtables(prv->gn, pub.nsq));
+
+#  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii)	{			\
+    bn_t pre_rexp,pre_rmask; bn_new(pre_rexp); bn_new(pre_rmask);	\
+    bn_rand_mod(pre_rexp, prv->a);					\
+    bn_mxp_prepwr(pre_rmask, prv->gn, pre_rexp, pub.nsq, MXPTBLS);	\
+    PAILLIER_PRECIPHER(res,mes,pre_rmask,pub,prv);			\
+    }
+
+// #  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii) cp_shpe_enc_prv((res).c,mes,prv)
 #else
-#  define PAILLIER_PRECOMPU(pub,prv,psize)                               \
-     const size_t paillierands(std::min((int64_t)VESPO_NOTSECURE,psize));\
-     Polynomial<bn_t> reusedrands(paillierands-1,pub.nsq);               \
-     random_precompute(reusedrands,pub,prv,psize);
+#  define PAILLIER_PRECOMPU(pub,prv,psize)					\
+    const size_t paillierands(std::min((int64_t)VESPO_NOTSECURE,psize));	\
+    Polynomial<bn_t> reusedrands(paillierands-1,pub.nsq);			\
+    random_precompute(reusedrands,pub,prv,psize);
 
 // Compute directly (1+ mes * N) mod N^2
 // Instead of (1+N)^m mod N^2  (would be: bn_mxp(res.c, g, mes, pub->nsq);)
 // Therefore almost no exponentiations at setup
-#  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii)              \
-     bn_mul(res.c, prv->crt->n, mes);                        \
-     bn_mod(res.c, res.c, pub.nsq);                          \
-     bn_mul(res.c, res.c, prv->b);                           \
-     bn_add_dig(res.c, res.c, 1);                            \
-     bn_mod(res.c, res.c, pub.nsq);                          \
-     bn_mul(res.c, res.c, reusedrands[ii % VESPO_NOTSECURE]);\
-     bn_mod(res.c, res.c, pub.nsq);
+#  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii)					\
+    PAILLIER_PRECIPHER(res,mes,reusedrands[ii % VESPO_NOTSECURE],pub,prv);
 
 #endif
 //=====================================================================
@@ -366,11 +387,11 @@ struct client_t {
 
 struct server_t {
     paillier_pubkey_t pub;          // Paillier public key
-        // Enciphered Polynomial, cut into 'blocks' chunks
-        //     last ones of size [ (degree+1)/Blocks ]
-        //     first ones of that size + 1
-        //     so that sum of sizes is 'degree+1'
-        //     W is the vector of these blocks
+	// Enciphered Polynomial, cut into 'blocks' chunks
+	//     last ones of size [ (degree+1)/Blocks ]
+	//     first ones of that size + 1
+	//     so that sum of sizes is 'degree+1'
+	//     W is the vector of these blocks
     std::vector<Polynomial<paillier_ciphertext_t>> W;
     int64_t bigblocks;              // number of first blocks
     Polynomial<g2_t> H1_b, H2_b;    // Same degree checkpointing polynomials
@@ -398,22 +419,22 @@ void check_dp(g1_t& dp, const Polynomial<g1_t>& gS, const Polynomial<bn_t>& P);
 bool check_orders(const client_t& client, const bn_t& pairing_r);
 
 bool check_pubkey(const client_t& client, const server_t& server,
-                  const Polynomial<bn_t>& P_b,
-                  const bn_t& eval, const g2_t& K_b);
+		  const Polynomial<bn_t>& P_b,
+		  const bn_t& eval, const g2_t& K_b);
 
 bool check_g2_omxp(const g2_t& T, const Polynomial<g2_t>& S,
-                   const bn_t& r, const int64_t deg, const bn_t& mod) ;
+		   const bn_t& r, const int64_t deg, const bn_t& mod) ;
 
 bool check_g1_hmxp(const Polynomial<g1_t>& T, const Polynomial<g1_t>& S,
-                   const bn_t& r, const int64_t from, const int64_t length,
-                   const bn_t& mod);
+		   const bn_t& r, const int64_t from, const int64_t length,
+		   const bn_t& mod);
 
 void check_g1_msl(g1_t& r, const g1_t* P, const bn_t* K, int N);
 
 void check_g2_mul_sim_lot(g2_t& RES, const g2_t* P, const bn_t* K, int N);
 
 bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
-                       const Polynomial<g1_t>& H_b, const bn_t& rmod);
+		       const Polynomial<g1_t>& H_b, const bn_t& rmod);
 #endif
 
 //=====================================================================
@@ -422,8 +443,8 @@ bool check_ciph_horner(gt_t sxi_b, const int64_t deg, const server_t& server,
 
     // <P1,P2> <-- sum X^i ( p_i valpha + msigma^i vbeta)
 void vhide_poly(Polynomial<bn_t> & P1, Polynomial<bn_t>& P2,
-                const vector & valpha, const vector& vbeta,
-                const matrix& msigma, const Polynomial<bn_t> & P);
+		const vector & valpha, const vector& vbeta,
+		const matrix& msigma, const Polynomial<bn_t> & P);
 
 //=====================================================================
 // VeSPo: Paillier encryption of the polynomial
@@ -432,21 +453,21 @@ void vhide_poly(Polynomial<bn_t> & P1, Polynomial<bn_t>& P2,
     // Computes 1, r1, ..., r1^bigsdegree,
     // r1^bigsdegree r2, ..., r1^bigsdegree r2^(totaldegree-bigsdegree)
 void geo_progression(Polynomial<bn_t>& pows_r,
-                     const int64_t bigsdegree, const bn_t& r1,
-                     const int64_t totaldegree, const bn_t& r2,
-                     const bn_t& mod, double& time_r);
+		     const int64_t bigsdegree, const bn_t& r1,
+		     const int64_t totaldegree, const bn_t& r2,
+		     const bn_t& mod, double& time_r);
 
     // Paillier homomorphic dot-product
 void paillier_hom_dp(paillier_ciphertext_t& eval,
-                     const paillier_pubkey_t& kpub,
-                     const Polynomial<paillier_ciphertext_t>& Wi,
-                     const Polynomial<bn_t>& pows_r,
-                     const int64_t degree);
+		     const paillier_pubkey_t& kpub,
+		     const Polynomial<paillier_ciphertext_t>& Wi,
+		     const Polynomial<bn_t>& pows_r,
+		     const int64_t degree);
 
     // W <-- E(P), and W is cut into chunks
 void encrypt_poly(std::vector<Polynomial<paillier_ciphertext_t>>& W,
-                  const Polynomial<bn_t>& P,
-                  const paillier_pubkey_t& pub, const paillier_prvkey_t& prv);
+		  const Polynomial<bn_t>& P,
+		  const paillier_pubkey_t& pub, const paillier_prvkey_t& prv);
 
 
 //=====================================================================
@@ -455,11 +476,11 @@ void encrypt_poly(std::vector<Polynomial<paillier_ciphertext_t>>& W,
 
     // hi[i] <-- g2^{p_(i+1)}
 Polynomial<g2_t>& powered_poly_gen2(Polynomial<g2_t>& H,
-                                    const Polynomial<bn_t>& P);
+				    const Polynomial<bn_t>& P);
 
     // S[i] <-- g1^{s^i}
 Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, const bn_t& s,
-                                        const int64_t d, const bn_t& mod);
+					const int64_t d, const bn_t& mod);
 
 
 //========================================================
@@ -470,19 +491,19 @@ Polynomial<g1_t>& power_progression_gen(Polynomial<g1_t>& S, const bn_t& s,
     // Multiplies simultaneously elements from G_1.
     // Computes RES = \Sum_i=0..n k_iP_i.
 void g1_mul_sim_lot_par(g1_t& RES, const g1_t* P, const bn_t* K, int N,
-                        const bn_t& mod, const int nbtasks);
+			const bn_t& mod, const int nbtasks);
 
     // Sequential Server xi computation
     //   first step : Horner-like prefix computations of S_j^{x_k}
 void g1_horner_mxp_seq(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
-                       const bn_t& r, const int64_t from, const int64_t length);
+		       const bn_t& r, const int64_t from, const int64_t length);
 
     // Parallel Server xi computation
     //   first step : Horner-like prefix computations of S_j^{x_k}
 void g1_horner_mxp_iter(Polynomial<g1_t>& U, const Polynomial<g1_t>& S,
-                        const bn_t& r, const int64_t from, const int64_t length,
-                        const Polynomial<bn_t>& revpow, const int64_t step,
-                        const bn_t& mod, const int64_t nbtasks);
+			const bn_t& r, const int64_t from, const int64_t length,
+			const Polynomial<bn_t>& revpow, const int64_t step,
+			const bn_t& mod, const int64_t nbtasks);
 
     // Simultaneous pairing computation (and final accumulation)
 void pairing_sim(gt_t& xi_b, const g1_t* H, const g2_t* T, const int64_t deg);
@@ -490,8 +511,8 @@ void pairing_sim(gt_t& xi_b, const g1_t* H, const g2_t* T, const int64_t deg);
     // Server xi computation
     //   second step: applying the pairing maps as a dotproduct
 void pairing_double(gt_t& xi_b, const int64_t length,
-                    const int64_t nbblocks, const bn_t& mod,
-                    const Polynomial<g1_t>& H, const Polynomial<g2_t>& Ti);
+		    const int64_t nbblocks, const bn_t& mod,
+		    const Polynomial<g1_t>& H, const Polynomial<g2_t>& Ti);
 
 
 //========================================================
@@ -499,8 +520,8 @@ void pairing_double(gt_t& xi_b, const int64_t length,
 //        For a polynomial, sets Client keys & Server data
 //========================================================
 void setup(client_t& client, server_t& server,
-           uint64_t pailliersize,
-           const Polynomial<bn_t>& P, double& t_horner);
+	   uint64_t pailliersize,
+	   const Polynomial<bn_t>& P, double& t_horner);
 
 //========================================================
 // VeSPo: Polynomial coefficient Update protocol
@@ -508,8 +529,8 @@ void setup(client_t& client, server_t& server,
 //        P_index <--- P_index + delta
 //========================================================
 bool update(client_t& client, server_t& server,
-            Polynomial<bn_t>& P, const bn_t& delta, const size_t index,
-            double& time_u);
+	    Polynomial<bn_t>& P, const bn_t& delta, const size_t index,
+	    double& time_u);
 
 //========================================================
 // VeSPo: Polynomial Audit protocol
@@ -519,13 +540,13 @@ bool update(client_t& client, server_t& server,
 //                deciphers the evaluation
 //========================================================
 bool eval(paillier_plaintext_t& z, const client_t& client,
-          const server_t& server,
-          const bn_t& r, const int64_t nb_tasks,
-          double& time_c, double& time_s
+	  const server_t& server,
+	  const bn_t& r, const int64_t nb_tasks,
+	  double& time_c, double& time_s
 #ifdef VESPO_TIMINGS
-          , double& time_e, double& time_p,
-          double& time_ce, double& time_cg, double& time_cp
+	  , double& time_e, double& time_p,
+	  double& time_ce, double& time_cg, double& time_cp
 #endif
-          );
+	  );
 
 #endif

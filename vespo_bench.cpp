@@ -28,7 +28,7 @@ int main(int argc, char * argv[]) {
 	//argv[3]: number of experiments
 	//argv[4]: number of parallel tasks (default is number of threads)
 
-    if (argc < 1) {
+    if (argc < 4) {
 	std::cerr << "Usage: " << argv[0] << " <Vector dimension> <Paillier bitsize> <Verification iterations> [tasks (default=threads)]" << std::endl;
 	return 1;
     }
@@ -70,30 +70,30 @@ int main(int argc, char * argv[]) {
 	pc_param_print();
 
     const uint64_t group_bits = pc_param_level()<<1;
-	std::clog << "  security level: " << pc_param_level() << std::endl;
+    std::clog << "  security level: " << pc_param_level() << std::endl;
 
 	/********************************************************************
 	 * VESPo: parameters
 	 *******************************************************************/
-	util_banner("VESPO:", 0);
+    util_banner("VESPO:", 0);
 
     std::clog << "  MAX_ALLOC: " << VESPO_RELIC_LIMIT_MAX_ALLOC << std::endl;
     std::clog << "  SHAMIR_WD: " << RLC_MAX(8, RLC_WIDTH) << std::endl;
     std::clog << "  CLOCK TYP: " << CLOCKTYPE << std::endl;
-	std::clog << "  OMP CORES: " << numthreads << std::endl;
-	std::clog << "  NUM ITERS: " << nb_iter << std::endl;
-	std::clog << "  NUM TASKS: " << nb_tasks << std::endl;
+    std::clog << "  OMP CORES: " << numthreads << std::endl;
+    std::clog << "  NUM ITERS: " << nb_iter << std::endl;
+    std::clog << "  NUM TASKS: " << nb_tasks << std::endl;
 
 #ifdef VESPO_NOTSECURE
-    std::clog << "  REUSEDPRD: " << VESPO_NOTSECURE << std::endl;
+    std::clog << "\033[1;36m  REUSEDPRD: " << VESPO_NOTSECURE << "\033[0m" << std::endl;
 #endif
 
 	/********************************************************************
 	 * VESPo: group order
 	 *******************************************************************/
     bn_t group_mod; bn_null(group_mod); bn_new(group_mod); pc_get_ord(group_mod);
-	std::clog << "  MOD BITS : " << bn_bits(group_mod) << std::endl;
-	std::clog << "  PAIL SIZE: " << pailliersize << std::endl;
+    std::clog << "  MOD BITS : " << bn_bits(group_mod) << std::endl;
+    std::clog << "  PAIL SIZE: " << pailliersize << std::endl;
 
     std::vector<double> time_c(nb_iter), time_s(nb_iter), time_u((nb_iter*(nb_iter+1))>>1);
     double time_i=0., time_eval=0.;
