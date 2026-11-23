@@ -315,21 +315,19 @@ int paillier_mul(paillier_ciphertext_t& res,
      bn_mod(res.c, res.c, pub.nsq);
 
 
-void random_precompute(Polynomial<bn_t>& reusedrands,
-		       const paillier_pubkey_t& pub,
-		       const paillier_prvkey_t& prv,
-		       const int64_t psize);
 
+
+
+#ifndef VESPO_NOTSECURE
+    //=====================================================================
     // Default sliding window table level (Total: 2^lvl * bits(mod) storage)
 #define VESPO_PWRTABLVL 5
+
 std::vector<Polynomial<bn_t>> bn_mxp_pwrtables(const bn_t base, const bn_t& mod,
 					       const size_t levelWG=VESPO_PWRTABLVL);
 void bn_mxp_prepwr(bn_t r, const bn_t m, const bn_t e, const bn_t n,
 		   const std::vector<Polynomial<bn_t>>& W,
 		   const size_t lvl=VESPO_PWRTABLVL);
-
-
-#ifndef VESPO_NOTSECURE
 
 #  define PAILLIER_PRECOMPU(pub,prv,psize)                      \
     auto MXPTBLS(bn_mxp_pwrtables(prv->gn, pub.nsq));
@@ -341,9 +339,13 @@ void bn_mxp_prepwr(bn_t r, const bn_t m, const bn_t e, const bn_t n,
     PAILLIER_PRECIPHER(res,mes,pre_rmask,pub,prv);			\
     }
 
-// #  define PAILLIER_ENCIPHER(res,mes,pub,prv,ii) cp_shpe_enc_prv((res).c,mes,prv)
 #else
-#  define PAILLIER_PRECOMPU(pub,prv,psize)					\
+void random_precompute(Polynomial<bn_t>& reusedrands,
+		       const paillier_pubkey_t& pub,
+		       const paillier_prvkey_t& prv,
+		       const int64_t psize);
+
+#  define PAILLIER_PRECOMPU(pub,prv,psize)				\
     const size_t paillierands(std::min((int64_t)VESPO_NOTSECURE,psize));	\
     Polynomial<bn_t> reusedrands(paillierands-1,pub.nsq);			\
     random_precompute(reusedrands,pub,prv,psize);

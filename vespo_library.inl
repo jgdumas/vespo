@@ -220,11 +220,16 @@ inline void random_precompute(Polynomial<bn_t>& reusedrands,
 
 std::vector<Polynomial<bn_t>> bn_mxp_pwrtables(const bn_t base, const bn_t& mod,
 					       const size_t levelWG) {
+#ifdef VESPO_SUB_TIMINGS
+    Chrono c_pwrtables; c_pwrtables.start();
+#endif
     const size_t pwrWG(1u<<levelWG);
     const size_t mbits(bn_bits(mod));
 	// Build the tables
     std::vector<Polynomial<bn_t>> W; W.reserve(pwrWG);
     for(size_t l=0; l<pwrWG; ++l) W.emplace_back(mbits,mod);
+
+    std::clog << "\033[1;36m[PAILLIER Powers table (d°" << W[0].degree() << ")]\033[0m\n";
 
 	// Initial table, the power of two powers of b
     bn_copy(W[0][0],base);
@@ -237,7 +242,7 @@ std::vector<Polynomial<bn_t>> bn_mxp_pwrtables(const bn_t base, const bn_t& mod,
 	const size_t twotoj(1u<<j);
 	for(size_t k=0; k<twotoj; ++k) {
 #pragma omp parallel for shared(W,mod)
-	    for(int64_t i=j+1; i<=W[0].degree(); ++i) {
+	    for(int i=j+1; i<=W[0].degree(); ++i) {
 		// std::clog << "j: " << j << ", k: " << k << ", i:" << i << ':';
 		// std::clog << "W[" << (twotoj+k) << "][" << (i-j-1) << "] <--- "
 		//	  << "W[" << k << "][" << (i-j-1) << "] * "
@@ -247,6 +252,12 @@ std::vector<Polynomial<bn_t>> bn_mxp_pwrtables(const bn_t base, const bn_t& mod,
 	}
     }
 
+#ifdef VESPO_SUB_TIMINGS
+    std::clog << "\033[1;36m[PAILLIER Power/Windows " << c_pwrtables.stop()
+	      << "]\033[0m\n";
+#else
+    std::clog << "\033[1;36m[PAILLIER Power/Windows done.]\033[0m\n";
+#endif
     return W;
 }
 
@@ -1097,12 +1108,15 @@ inline void encrypt_poly(std::vector<Polynomial<paillier_ciphertext_t>>& W,
 #endif
     PAILLIER_PRECOMPU(pub,prv,P.degree()+1);
 
-    int64_t i = 0;
-
+    size_t idx(0);
     for(size_t j=0; j<W.size(); ++j) {
-	for(int64_t k=0; k<=W[j].degree(); ++k, ++i) {
-	    PAILLIER_ENCIPHER(W[j][k], P[i], pub, prv, i);
+#pragma omp parallel for shared(W,P,pub,prv,idx)
+	for(int k=0; k<=W[j].degree(); ++k) {
+	    const size_t idxk(idx+k);
+	    PAILLIER_ENCIPHER(W[j][k], P[idxk], pub, prv, idxk);
 	}
+	idx += W[j].degree();
+	++idx;
     }
 
 #ifdef VESPO_SUB_TIMINGS
