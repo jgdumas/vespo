@@ -321,8 +321,9 @@ int paillier_mul(paillier_ciphertext_t& res,
 #ifndef VESPO_NOTSECURE
     //=====================================================================
     // Default sliding window table level (Total: 2^lvl * bits(mod) storage)
-#define VESPO_PWRTABLVL 5
-
+#  ifndef VESPO_PWRTABLVL
+#    define VESPO_PWRTABLVL 5
+#  endif
 std::vector<Polynomial<bn_t>> bn_mxp_pwrtables(const bn_t base, const bn_t& mod,
 					       const size_t levelWG=VESPO_PWRTABLVL);
 void bn_mxp_prepwr(bn_t r, const bn_t m, const bn_t e, const bn_t n,

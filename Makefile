@@ -12,6 +12,7 @@ TIMFLAGS = -DVESPO_SUB_TIMINGS                  # detailed timings
 PARFLAGS = -DCLOCKTYPE=CLOCK_REALTIME -fopenmp  # using the parallel version
 LIMFLAGS = -DVESPO_RELIC_LIMIT_MAX_ALLOC=4096   # limiting RELIC allocation
 SECFLAGS = -DVESPO_NOTSECURE=100                # only not benchmarking setup
+SECFLAGS = -DVESPO_PWRTABLVL=5									# precomp. lvl. encipher
 CHKFLAGS += -DVESPO_CHECKERS                    # Debug: adding checkers
 DBGFLAGS += -DDEBUG                             # Debug: general logs
 
